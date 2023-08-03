@@ -14,9 +14,6 @@
 #include "structureView.h"
 #include <glad.h>
 
-#include "shader.h"
-
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -76,11 +73,12 @@ void CstructureView::OnDraw(CDC* /*pDC*/)
 
 	// TODO: add draw code for native data here
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // color and depth already set
-	
 
 	DimAxis();
+	
 	glBindVertexArray(axisVAO);
 	glDrawArrays(GL_LINES, 0, 6);
+	glBindVertexArray(0);
 
 	glFinish();
 
@@ -164,6 +162,9 @@ BOOL CstructureView::InitializeOpenGL() {
 		OnDestroy();
 	}
 
+	glGenVertexArrays(1, &axisVAO);
+	glGenBuffers(1, &axisVBO);
+
 	return TRUE;
 }
 
@@ -216,12 +217,14 @@ BOOL CstructureView::SetupViewport(float cx, float cy) {
 }
 
 BOOL CstructureView::SetupProjection() {
-	model = glm::mat4(1.0f);
-	view = glm::mat4(1.0f);
-	camera = glm::mat4(1.0f);
+	if (FALSE == SetupModel()) {
+		return FALSE;
+	}
 
-	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	view = glm::translate(view, glm::vec3(0.0f, -10.0f, -50.0f));
+	if (FALSE == SetupView()) {
+		return FALSE;
+	}
+
 	if (FALSE == SetupCamera())
 		return FALSE;
 
@@ -232,7 +235,21 @@ BOOL CstructureView::SetupProjection() {
 	return TRUE;
 }
 
+BOOL CstructureView::SetupView() {
+	view = glm::mat4(1.0f);
+	view = glm::translate(view, glm::vec3(0.0f, -10.0f, -50.0f));
+	return TRUE;
+}
+
+BOOL CstructureView::SetupModel() {
+	model = glm::mat4(1.0f);
+	model = model * temp;
+	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	return TRUE;
+}
+
 BOOL CstructureView::SetupCamera() {
+	camera = glm::mat4(1.0f);
 	// camera - remember there is no camera in OpenGL. It is the model that's moving.
 	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 	cameraDirection = glm::normalize(-cameraFront);
@@ -245,8 +262,6 @@ BOOL CstructureView::SetupCamera() {
 }
 
 void CstructureView::DimAxis() {
-	Shader axisShader("./glsl/threeaxis.vs", "./glsl/threeaxis.fs");
-
 	float vertices[] = {   // colors
 		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 		50.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
@@ -257,7 +272,9 @@ void CstructureView::DimAxis() {
 	};
 
 	// need this in advance to update uniform variable in GLSL
-	
+
+
+	Shader axisShader{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
 	axisShader.use();
 
 	unsigned int modelLoc = glGetUniformLocation(axisShader.ID, "model");
@@ -268,13 +285,8 @@ void CstructureView::DimAxis() {
 	axisShader.setMat4("projection", projection);
 	axisShader.setMat4("camera", camera);
 
-
-	unsigned int VBO;
-	glGenVertexArrays(1, &axisVAO);
-	glGenBuffers(1, &VBO);
-
 	glBindVertexArray(axisVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// position attribute
@@ -285,8 +297,8 @@ void CstructureView::DimAxis() {
 	glEnableVertexAttribArray(1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
 }
 
 // CstructureView message handlers
@@ -352,6 +364,7 @@ void CstructureView::OnRButtonDown(UINT nFlags, CPoint point)
 	lastX = static_cast<float>(point.x);
 	lastY = static_cast<float>(point.y);
 
+	Invalidate();
 	CView::OnRButtonDown(nFlags, point);
 }
 
@@ -385,6 +398,7 @@ void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
 		target.x = glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
 		target.y = glm::sin(glm::radians(pitch));
 		target.z = glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
+
 		cameraFront = glm::normalize(target);
 	
 		SetupCamera();
@@ -410,15 +424,14 @@ void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
 	// rotate - origin is world
 	else if (nFlags & MK_RBUTTON) {
 		// find rotational axis
-		float xAxis = -(lastY - yPos);
-		float yAxis = xPos - lastX;
+		xAxis = -(lastY - yPos);
+		yAxis = (xPos - lastX);
 		lastX = xPos;
 		lastY = yPos;
 
-		const float sensitivity2{ 0.5f };
-		
-		model = glm::rotate(model, glm::radians(sensitivity2), glm::vec3(xAxis, yAxis, 0.0f));
-
+		temp = glm::rotate(temp, glm::radians(sensitivity2), glm::vec3(xAxis, yAxis, 0.0f));
+	
+		SetupModel();
 		Invalidate();
 	}
 
@@ -435,7 +448,9 @@ BOOL CstructureView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	if (zoom > 45.0f)
 		zoom = 45.0f;
 
-	SetupProjection();
+
+	projection = glm::perspective(glm::radians(zoom), cx / cy, 0.1f, 100.0f);
+
 	Invalidate();
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
 }

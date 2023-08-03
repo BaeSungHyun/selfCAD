@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "shader.h"
 
 class CstructureView : public CView
 {
@@ -45,6 +46,8 @@ protected:
 
 	// local space -> world space -> view space -> clip space -> screen space
 	virtual BOOL SetupProjection();
+	virtual BOOL SetupView();
+	virtual BOOL SetupModel();
 	virtual BOOL SetupViewport(float cx, float cy);
 	virtual BOOL SetupCamera();
 
@@ -74,6 +77,10 @@ private:
 	float lastY;
 
 	// rotation by origin on world
+	const float sensitivity2{ 0.5f };
+	glm::mat4 temp{glm::mat4(1.0f)};
+	float xAxis;
+	float yAxis;
 
 	// zoom
 	float zoom{ 45.0f };
@@ -81,8 +88,7 @@ private:
 
 	// axis VAO stored for defalut
 	unsigned int axisVAO;
-	float yaw2{ 0.0f };
-	float pitch2{ 0.0f };
+	unsigned int axisVBO;
 
 	void DimAxis();
 
