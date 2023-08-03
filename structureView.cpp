@@ -37,6 +37,10 @@ BEGIN_MESSAGE_MAP(CstructureView, CView)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
 	ON_WM_ERASEBKGND()
+	ON_WM_RBUTTONDOWN()
+	ON_WM_MOUSEMOVE()
+	ON_WM_RBUTTONUP()
+	ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
 
 // CstructureView construction/destruction
@@ -73,8 +77,9 @@ void CstructureView::OnDraw(CDC* /*pDC*/)
 	// TODO: add draw code for native data here
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // color and depth already set
 	
+
 	DimAxis();
-	glBindVertexArray(VAO);
+	glBindVertexArray(axisVAO);
 	glDrawArrays(GL_LINES, 0, 6);
 
 	glFinish();
@@ -165,8 +170,7 @@ BOOL CstructureView::InitializeOpenGL() {
 BOOL CstructureView::SetupGLAD() {
 	if (NULL == gladLoadGL()) // don't know how this works exactly
 		return FALSE;
-	const GLubyte* version = glGetString(GL_VERSION);
-	
+	return TRUE;
 }
 
 BOOL CstructureView::SetupPixelFormat() {
@@ -204,7 +208,7 @@ BOOL CstructureView::SetupPixelFormat() {
 	return TRUE;
 }
 
-BOOL CstructureView::SetupViewport(int cx, int cy) {
+BOOL CstructureView::SetupViewport(float cx, float cy) {
 	glViewport(0, 0, cx, cy);
 	this->cx = cx;
 	this->cy = cy;
@@ -212,15 +216,30 @@ BOOL CstructureView::SetupViewport(int cx, int cy) {
 }
 
 BOOL CstructureView::SetupProjection() {
-	model = glm::mat4(1.0f); // initialize to identity matrix
+	model = glm::mat4(1.0f);
 	view = glm::mat4(1.0f);
-	projection = glm::mat4(1.0f);
+	camera = glm::mat4(1.0f);
+
 	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	view = glm::translate(view, glm::vec3(0.0f, -10.0f, -50.0f));
+	if (FALSE == SetupCamera())
+		return FALSE;
 
 	// glm::ortho(0.0f, cx, 0.0f, cy, 0.1f, 100.0f);
-	projection = glm::perspective(glm::radians(45.0f), cx / cy, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians(zoom), cx / cy, 0.1f, 100.0f);
 	// retrieve the matrix uniform locations
+
+	return TRUE;
+}
+
+BOOL CstructureView::SetupCamera() {
+	// camera - remember there is no camera in OpenGL. It is the model that's moving.
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+	cameraDirection = glm::normalize(-cameraFront);
+	glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+	glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+	camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 	return TRUE;
 }
@@ -230,11 +249,11 @@ void CstructureView::DimAxis() {
 
 	float vertices[] = {   // colors
 		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 50.0f, 1.0f, 0.0f, 0.0f,
+		50.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		50.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 50.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 50.0f, 0.0f, 0.0f, 0.0f, 1.0f
+		0.0f, 0.0f, 50.0f, 0.0f, 0.0f, 1.0f
 	};
 
 	// need this in advance to update uniform variable in GLSL
@@ -247,13 +266,14 @@ void CstructureView::DimAxis() {
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
 	axisShader.setMat4("projection", projection);
+	axisShader.setMat4("camera", camera);
 
 
 	unsigned int VBO;
-	glGenVertexArrays(1, &VAO);
+	glGenVertexArrays(1, &axisVAO);
 	glGenBuffers(1, &VBO);
 
-	glBindVertexArray(VAO);
+	glBindVertexArray(axisVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
@@ -323,4 +343,99 @@ BOOL CstructureView::OnEraseBkgnd(CDC* pDC)
 
 	// return CView::OnEraseBkgnd(pDC);
 	return TRUE;
+}
+
+
+void CstructureView::OnRButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: Add your message handler code here and/or call default
+	lastX = static_cast<float>(point.x);
+	lastY = static_cast<float>(point.y);
+
+	CView::OnRButtonDown(nFlags, point);
+}
+
+void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: Add your message handler code here and/or call default
+	// rotate - origin is camera
+	float xPos = static_cast<float>(point.x);
+	float yPos = static_cast<float>(point.y);
+
+	if (nFlags & MK_CONTROL && nFlags & MK_RBUTTON) {
+		float xOffset = xPos - lastX;
+		float yOffset = lastY - yPos;
+		lastX = xPos;
+		lastY = yPos;
+
+		const float sensitivity = 0.1f;
+		xOffset *= sensitivity;
+		yOffset *= sensitivity;
+
+		yaw += xOffset;
+		pitch += yOffset;
+
+		// check out of bounds
+		if (pitch > 89.0f)
+			pitch = 89.0f;
+		if (pitch < -89.0f)
+			pitch = -89.0f;
+
+		glm::vec3 target;
+		target.x = glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
+		target.y = glm::sin(glm::radians(pitch));
+		target.z = glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
+		cameraFront = glm::normalize(target);
+	
+		SetupCamera();
+		Invalidate();
+	}
+	// move camera position
+	else if (nFlags & MK_SHIFT && nFlags & MK_RBUTTON) {
+		float xVec = xPos - lastX;
+		float yVec = lastY - yPos;
+		lastX = xPos;
+		lastY = yPos;
+
+		const float cameraSpeed = 0.05f;
+		xVec *= cameraSpeed;
+		yVec *= cameraSpeed;
+
+		glm::vec3 cameraMove = glm::vec3(xVec, yVec, 0);
+
+		cameraPos += cameraMove;
+		SetupCamera();
+		Invalidate();
+	}
+	// rotate - origin is world
+	else if (nFlags & MK_RBUTTON) {
+		// find rotational axis
+		float xAxis = -(lastY - yPos);
+		float yAxis = xPos - lastX;
+		lastX = xPos;
+		lastY = yPos;
+
+		const float sensitivity2{ 0.5f };
+		
+		model = glm::rotate(model, glm::radians(sensitivity2), glm::vec3(xAxis, yAxis, 0.0f));
+
+		Invalidate();
+	}
+
+	CView::OnMouseMove(nFlags, point);
+}
+
+
+BOOL CstructureView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+	// TODO: Add your message handler code here and/or call default
+	zoom -= static_cast<float>(zDelta / 120);
+	if (zoom < 1.0f)
+		zoom = 1.0f;
+	if (zoom > 45.0f)
+		zoom = 45.0f;
+
+	SetupProjection();
+	Invalidate();
+	return CView::OnMouseWheel(nFlags, zDelta, pt);
 }
