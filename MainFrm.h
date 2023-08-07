@@ -36,6 +36,8 @@ protected:  // control bar embedded members
 // Generated message map functions
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void OnLineToolbar();
+	afx_msg void OnLineToolbarReturn();
 	DECLARE_MESSAGE_MAP()
 };
 

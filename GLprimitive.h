@@ -32,6 +32,7 @@ public:
 	virtual void setZ(float);
 
 	virtual float* getVertex();
+	virtual float* getpVertices();
 
 	// color
 	virtual float getCX(int) const;
@@ -45,6 +46,9 @@ public:
 	// capacity
 	virtual void setCapacity(int);
 	virtual int getCapacity() const;
+
+	// mode
+	virtual void setMode(int);
 
 	// how to paint
 	virtual void drawing();
@@ -63,13 +67,12 @@ private: // why not change to protected
 
 	int indexLayer{ 0 };
 
-	Shader* shader{ 0 };
-
 	// whether to use object outlining or not
 	BOOL outline{ FALSE };
 
 protected:
 	unsigned int VAO;
 	unsigned int VBO;
+	Shader* shader{ 0 };
 };
 

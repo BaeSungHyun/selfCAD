@@ -18,6 +18,8 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_CREATE()
+	ON_COMMAND(ID_LINE_TOOLBAR, &CMainFrame::OnLineToolbar)
+	ON_COMMAND(ID_LINE_TOOLBAR_RETURN, &CMainFrame::OnLineToolbarReturn)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -94,3 +96,18 @@ void CMainFrame::Dump(CDumpContext& dc) const
 
 // CMainFrame message handlers
 
+void CMainFrame::OnLineToolbar() {
+	if (!m_wndToolBar.LoadToolBar(IDR_UPDATE_LINE_TOOLBAR))
+	{
+		TRACE0("Failed to create toolbar\n");
+		return; // fail to create
+	}
+}
+
+void CMainFrame::OnLineToolbarReturn() {
+	if (!m_wndToolBar.LoadToolBar(IDR_MAINFRAME))
+	{
+		TRACE0("Failed to create toolbar\n");
+		return; // fail to create
+	}
+}

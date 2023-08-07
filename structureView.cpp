@@ -37,6 +37,9 @@ BEGIN_MESSAGE_MAP(CstructureView, CView)
 	ON_WM_RBUTTONUP()
 	ON_WM_MOUSEWHEEL()
 	ON_COMMAND(ID_POINT_TOOLBAR, &CstructureView::OnPointToolbar)
+	ON_COMMAND(ID_LINES_TOOLBAR, &CstructureView::OnLinesToolbar)
+	ON_COMMAND(ID_LINE_STRIP_TOOLBAR, &CstructureView::OnLineStripToolbar)
+	ON_COMMAND(ID_LINE_LOOP_TOOLBAR, &CstructureView::OnLineLoopToolbar)
 END_MESSAGE_MAP()
 
 // CstructureView construction/destruction
@@ -46,7 +49,7 @@ CstructureView::CstructureView() noexcept
 {
 	// TODO: add construction code here
 	pPointdlg = NULL;
-	
+	pLinedlg = NULL;
 }
 
 CstructureView::~CstructureView()
@@ -81,6 +84,7 @@ void CstructureView::OnDraw(CDC* /*pDC*/)
 	DimAxis();
 	
 	glBindVertexArray(axisVAO);
+	glLineWidth(1.0f);
 	glDrawArrays(GL_LINES, 0, 6);
 	glBindVertexArray(0);
 	
@@ -481,5 +485,56 @@ void CstructureView::OnPointToolbar() {
 
 		pPointdlg->Create(IDD_POINT_DIALOG);
 		pPointdlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureView::OnLinesToolbar() {
+	if (pLinedlg != NULL) {
+		pLinedlg->SetFocus();
+	}
+	else {
+		pLinedlg = new Line(this);
+		pLinedlg->pView = this;
+		pLinedlg->lineX = 0;
+		pLinedlg->lineY = 0;
+		pLinedlg->lineZ = 0;
+
+		pLinedlg->Create(IDD_LINE_DIALOG);
+		pLinedlg->mode = 0;
+		pLinedlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureView::OnLineStripToolbar() {
+	if (pLinedlg != NULL) {
+		pLinedlg->SetFocus();
+	}
+	else {
+		pLinedlg = new Line(this);
+		pLinedlg->pView = this;
+		pLinedlg->lineX = 0;
+		pLinedlg->lineY = 0;
+		pLinedlg->lineZ = 0;
+
+		pLinedlg->Create(IDD_LINE_DIALOG);
+		pLinedlg->mode = 1;
+		pLinedlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureView::OnLineLoopToolbar() {
+	if (pLinedlg != NULL) {
+		pLinedlg->SetFocus();
+	}
+	else {
+		pLinedlg = new Line(this);
+		pLinedlg->pView = this;
+		pLinedlg->lineX = 0;
+		pLinedlg->lineY = 0;
+		pLinedlg->lineZ = 0;
+
+		pLinedlg->Create(IDD_LINE_DIALOG);
+		pLinedlg->mode = 2;
+		pLinedlg->ShowWindow(SW_SHOW);
 	}
 }

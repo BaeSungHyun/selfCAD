@@ -12,6 +12,7 @@ GLpoint::GLpoint() {
 
 void GLpoint::draw() {
 	glBindVertexArray(VAO);
+	glPointSize(pointSize);
 	glDrawArrays(GL_POINTS, 0, getCapacity());
 	glBindVertexArray(0);
 }

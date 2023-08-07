@@ -9,6 +9,7 @@
 #include "shader.h"
 #include "Layer.h"
 #include "Point.h"
+#include "Line.h"
 
 class CstructureView : public CView
 {
@@ -27,6 +28,7 @@ public:
 
 	// Point Dialog
 	Point* pPointdlg;
+	Line* pLinedlg;
 
 
 	// transformations
@@ -34,6 +36,9 @@ public:
 	glm::mat4 view{glm::mat4(1.0f)};
 	glm::mat4 camera{glm::mat4(1.0f)};
 	glm::mat4 projection{glm::mat4(1.0f)};
+
+protected:
+	CToolBar m_wndToolbar;
 
 	// Operations
 public:
@@ -119,6 +124,9 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	afx_msg void OnPointToolbar();
+	afx_msg void OnLinesToolbar();
+	afx_msg void OnLineStripToolbar();
+	afx_msg void OnLineLoopToolbar();
 };
 
 #ifndef _DEBUG  // debug version in structureView.cpp

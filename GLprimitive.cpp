@@ -15,6 +15,7 @@ void GLprimitive::setShader(const char* VerPath, const char* FragPath) {
 	shader = new Shader{ VerPath, FragPath };
 }
 
+// not actually needed because we're using the same shader as axisdim()
 void GLprimitive::compileShader(glm::mat4 model, glm::mat4 view, glm::mat4 camera, glm::mat4 projection) {
 	(*shader).use();
 
@@ -72,6 +73,10 @@ float* GLprimitive::getVertex() {
 	return vertex;
 }
 
+float* GLprimitive::getpVertices() {
+	return vertices;
+}
+
 // COLOR
 float GLprimitive::getCX(int index) const {
 	return vertices[6 * (index)+3];
@@ -98,6 +103,11 @@ int GLprimitive::getCapacity() const {
 }
 void GLprimitive::setCapacity(int addCapacity) {
 	capacity += addCapacity;
+}
+
+// MODE
+void GLprimitive::setMode(int mode) {
+	return;
 }
 
 // MAIN VERTEX - both point[3] and color[3]
@@ -132,18 +142,14 @@ void GLprimitive::pushVertex() {
 	setCapacity(1);
 } 
 
-
 // DRAWING
+
 void GLprimitive::drawing() {
 	
 	// make sure to push only one vertex to existing VBO
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * 6 * getCapacity(), vertices, GL_STATIC_DRAW);
-
-	CString str;
-	str.Format(_T("%f, %f, %f"), vertex[0], vertex[1], vertex[2]);
-	MessageBox(NULL, str, NULL, MB_OK);
 	
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
