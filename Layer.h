@@ -1,16 +1,30 @@
 #pragma once
 #include <afx.h>
+#include "GLpoint.h"
+
 class Layer : public CObject
 {
 public:
 	Layer();
 	virtual ~Layer();
 
-	unsigned int* getPVAO(); // to get a pointer to member data VAO
-	void addVAO(); // add one element to VAO array
-	void deleteVAO(int); // delete one element from VAO array
+	static enum TYPE {POINT, LINE, POLY};
+
+	BOOL bPoint{ FALSE };
+	BOOL bLine{ FALSE };
+	BOOL bPoly{ FALSE };
+
+	GLprimitive* getPrimitive(TYPE);
+
+	void drawing(TYPE);
+	void draw();
 private:
-	unsigned int* VAO = new unsigned int[capacity];
-	int capacity{ 0 };
+	GLprimitive* point = new GLpoint{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" }; // point, line, triangle... etc.;
+	// TEMPORARY
+	GLprimitive* line = new GLpoint{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
+	GLprimitive* poly = new GLpoint{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
+	GLprimitive* primitives[3]{ point, line, poly }; // array of pointer 
+
+
 };
 

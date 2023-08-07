@@ -19,8 +19,6 @@
 #endif
 
 
-
-
 // CstructureView
 
 IMPLEMENT_DYNCREATE(CstructureView, CView)
@@ -38,6 +36,7 @@ BEGIN_MESSAGE_MAP(CstructureView, CView)
 	ON_WM_MOUSEMOVE()
 	ON_WM_RBUTTONUP()
 	ON_WM_MOUSEWHEEL()
+	ON_COMMAND(ID_POINT_TOOLBAR, &CstructureView::OnPointToolbar)
 END_MESSAGE_MAP()
 
 // CstructureView construction/destruction
@@ -46,10 +45,15 @@ CstructureView::CstructureView() noexcept
 	: m_hRC(0), m_pDC(0)
 {
 	// TODO: add construction code here
+	pPointdlg = NULL;
+	
 }
 
 CstructureView::~CstructureView()
 {
+	delete axisShader;
+	delete pPointdlg;
+	delete[] pLayer;
 }
 
 BOOL CstructureView::PreCreateWindow(CREATESTRUCT& cs)
@@ -79,6 +83,8 @@ void CstructureView::OnDraw(CDC* /*pDC*/)
 	glBindVertexArray(axisVAO);
 	glDrawArrays(GL_LINES, 0, 6);
 	glBindVertexArray(0);
+	
+	pLayer->draw();
 
 	glFinish();
 
@@ -155,7 +161,6 @@ BOOL CstructureView::InitializeOpenGL() {
 	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_ALPHA_TEST);
 
 	if (GL_VERSION_3_3 > GL_VERSION) {
 		MessageBox(_T("Graphic Driver doens't support OpenGL 3.3 or above"));
@@ -164,6 +169,9 @@ BOOL CstructureView::InitializeOpenGL() {
 
 	glGenVertexArrays(1, &axisVAO);
 	glGenBuffers(1, &axisVBO);
+	axisShader = new Shader{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
+
+	pLayer = new Layer[++layerCapacity];
 
 	return TRUE;
 }
@@ -272,22 +280,22 @@ void CstructureView::DimAxis() {
 	};
 
 	// need this in advance to update uniform variable in GLSL
-
-
-	Shader axisShader{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
-	axisShader.use();
-
-	unsigned int modelLoc = glGetUniformLocation(axisShader.ID, "model");
-	unsigned int viewLoc = glGetUniformLocation(axisShader.ID, "view");
+	if (!first) {
+		(*axisShader).use();
+	
+		glBindVertexArray(axisVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), 0, GL_STATIC_DRAW);
+	}
+	unsigned int modelLoc = glGetUniformLocation((*axisShader).ID, "model");
+	unsigned int viewLoc = glGetUniformLocation((*axisShader).ID, "view");
 	// pass them to the shaders (3 different ways)
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-	axisShader.setMat4("projection", projection);
-	axisShader.setMat4("camera", camera);
+	(*axisShader).setMat4("projection", projection);
+	(*axisShader).setMat4("camera", camera);
 
-	glBindVertexArray(axisVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -299,6 +307,7 @@ void CstructureView::DimAxis() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	first = TRUE;
 }
 
 // CstructureView message handlers
@@ -364,7 +373,11 @@ void CstructureView::OnRButtonDown(UINT nFlags, CPoint point)
 	lastX = static_cast<float>(point.x);
 	lastY = static_cast<float>(point.y);
 
-	Invalidate();
+	if (lastX <= 0)
+		lastX = 0;
+	if (lastY <= 0)
+		lastY = 0;
+
 	CView::OnRButtonDown(nFlags, point);
 }
 
@@ -453,4 +466,20 @@ BOOL CstructureView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 
 	Invalidate();
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
+}
+
+void CstructureView::OnPointToolbar() {
+	if (pPointdlg != NULL) {
+		pPointdlg->SetFocus();
+	}
+	else {
+		pPointdlg = new Point(this);
+		pPointdlg->pView = this;
+		pPointdlg->pointX = 0;
+		pPointdlg->pointY = 0;
+		pPointdlg->pointZ = 0;
+
+		pPointdlg->Create(IDD_POINT_DIALOG);
+		pPointdlg->ShowWindow(SW_SHOW);
+	}
 }

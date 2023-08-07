@@ -2,38 +2,32 @@
 #include "Layer.h"
 
 Layer::Layer() {
+	
 }
 
 // virtual
 Layer::~Layer() {
-	delete[] VAO;
+	delete point;
+	delete line;
+	delete poly;
 }
 
-unsigned int* Layer::getPVAO() {
-	return VAO;
+GLprimitive* Layer::getPrimitive(TYPE type) {
+	// need GLprimitive(const GLprimitive&); constructor for this.
+	return (primitives[type]);
 }
 
-void Layer::addVAO() {
-	unsigned int* temp = new unsigned int[capacity + 1];
-	for (int i = 0; i < capacity; ++i) {
-		temp[i] = VAO[i];
-	}
-	delete[] VAO;
-	VAO = temp;
-	++capacity;
+
+void Layer::drawing(TYPE type) {
+		primitives[type]->drawing();
 }
 
-void Layer::deleteVAO(int index) {
-	if (capacity < 1 && index >= capacity) // capacity = 0 or below, which doesn't make sense to delete it
-		return;								// also doesn't make sense if index is bigger than capacity
-	unsigned int* temp = new unsigned int[capacity - 1];
-	for (int i = 0; i < capacity-1; ++i) {
-		if (i >= index)
-			temp[i] = VAO[i + 1];
-		else
-			temp[i] = VAO[i];
-	}
-	delete[] VAO;
-	VAO = temp;
-	--capacity;
+void Layer::draw() {
+	// mode : gl_filled ÀÌ·±°Å ³Ö¾îµµ ±¦ÂúÀ»µí!
+	if (bPoint)
+		primitives[POINT]->draw();
+	if (bLine)
+		primitives[LINE]->draw();
+	if (bPoly)
+		primitives[POLY]->draw();
 }

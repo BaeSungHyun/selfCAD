@@ -7,6 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "shader.h"
+#include "Layer.h"
+#include "Point.h"
 
 class CstructureView : public CView
 {
@@ -17,6 +19,21 @@ protected: // create from serialization only
 		// Attributes
 public:
 	CstructureDoc* GetDocument() const;
+
+	// Layer Array
+	int layerCapacity{ 0 };
+	Layer* pLayer = new Layer[layerCapacity];
+
+
+	// Point Dialog
+	Point* pPointdlg;
+
+
+	// transformations
+	glm::mat4 model{glm::mat4(1.0f)};
+	glm::mat4 view{glm::mat4(1.0f)};
+	glm::mat4 camera{glm::mat4(1.0f)};
+	glm::mat4 projection{glm::mat4(1.0f)};
 
 	// Operations
 public:
@@ -64,12 +81,6 @@ private:
 	glm::vec3 cameraDirection = glm::normalize(-cameraFront);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	// transformations
-	glm::mat4 model{glm::mat4(1.0f)};
-	glm::mat4 view{glm::mat4(1.0f)};
-	glm::mat4 camera{glm::mat4(1.0f)};
-	glm::mat4 projection{glm::mat4(1.0f)};
-
 	// rotation by origin on camera
 	float yaw = -90.0f;
 	float pitch = 0.0f;
@@ -89,8 +100,12 @@ private:
 	// axis VAO stored for defalut
 	unsigned int axisVAO;
 	unsigned int axisVBO;
+	Shader* axisShader{ nullptr };
 
+	// Axis
+	BOOL first{ FALSE };
 	void DimAxis();
+
 
 // Generated message map functions
 protected:
@@ -103,6 +118,7 @@ public:
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void OnPointToolbar();
 };
 
 #ifndef _DEBUG  // debug version in structureView.cpp

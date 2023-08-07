@@ -196,11 +196,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GLpoint.h" />
+    <ClInclude Include="GLprimitive.h" />
     <ClInclude Include="include\glad.h" />
     <ClInclude Include="include\khrplatform.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Point.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="structure.h" />
@@ -215,6 +218,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="GLpoint.cpp" />
+    <ClCompile Include="GLprimitive.cpp" />
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="pch.cpp">
@@ -223,6 +228,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Point.cpp" />
     <ClCompile Include="structure.cpp" />
     <ClCompile Include="structureDoc.cpp" />
     <ClCompile Include="structureView.cpp" />
