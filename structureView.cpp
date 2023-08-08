@@ -40,6 +40,9 @@ BEGIN_MESSAGE_MAP(CstructureView, CView)
 	ON_COMMAND(ID_LINES_TOOLBAR, &CstructureView::OnLinesToolbar)
 	ON_COMMAND(ID_LINE_STRIP_TOOLBAR, &CstructureView::OnLineStripToolbar)
 	ON_COMMAND(ID_LINE_LOOP_TOOLBAR, &CstructureView::OnLineLoopToolbar)
+	ON_COMMAND(ID_POLY_TRIANGLES, &CstructureView::OnPolyTriToolbar)
+	ON_COMMAND(ID_POLY_RECTANGLES, &CstructureView::OnPolyRecToolbar)
+	ON_COMMAND(ID_POLY_CIRCLE, &CstructureView::OnPolyCircleToolbar)
 END_MESSAGE_MAP()
 
 // CstructureView construction/destruction
@@ -50,6 +53,7 @@ CstructureView::CstructureView() noexcept
 	// TODO: add construction code here
 	pPointdlg = NULL;
 	pLinedlg = NULL;
+	pTridlg = NULL;
 }
 
 CstructureView::~CstructureView()
@@ -162,7 +166,7 @@ BOOL CstructureView::InitializeOpenGL() {
 		return FALSE;
 	}
 
-	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 
@@ -275,12 +279,12 @@ BOOL CstructureView::SetupCamera() {
 
 void CstructureView::DimAxis() {
 	float vertices[] = {   // colors
-		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		50.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 50.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		50.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 50.0f, 0.0f, 0.0f, 1.0f
+		0.0f, 50.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 50.0f, 1.0f, 0.0f, 0.0f
 	};
 
 	// need this in advance to update uniform variable in GLSL
@@ -536,5 +540,57 @@ void CstructureView::OnLineLoopToolbar() {
 		pLinedlg->Create(IDD_LINE_DIALOG);
 		pLinedlg->mode = 2;
 		pLinedlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureView::OnPolyTriToolbar() {
+	if (pTridlg != NULL) {
+		pTridlg->SetFocus();
+	}
+	else {
+		pTridlg = new Triangle(this);
+		pTridlg->pView = this;
+		pTridlg->triX = 0;
+		pTridlg->triY = 0;
+		pTridlg->triZ = 0;
+
+		pTridlg->Create(IDD_TRIANGLE_DIALOG);
+		pTridlg->mode = 0;
+		pTridlg->ShowWindow(SW_SHOW);
+	}
+}
+
+// BEFORE MAKING DIALOGUES FOR BELOW TWE FUNCTIONS
+void CstructureView::OnPolyRecToolbar() {
+	if (pTridlg != NULL) {
+		pTridlg->SetFocus();
+	}
+	else {
+		pTridlg = new Triangle(this);
+		pTridlg->pView = this;
+		pTridlg->triX = 0;
+		pTridlg->triY = 0;
+		pTridlg->triZ = 0;
+
+		pTridlg->Create(IDD_TRIANGLE_DIALOG);
+		pTridlg->mode = 1;
+		pTridlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureView::OnPolyCircleToolbar() {
+	if (pTridlg != NULL) {
+		pTridlg->SetFocus();
+	}
+	else {
+		pTridlg = new Triangle(this);
+		pTridlg->pView = this;
+		pTridlg->triX = 0;
+		pTridlg->triY = 0;
+		pTridlg->triZ = 0;
+
+		pTridlg->Create(IDD_TRIANGLE_DIALOG);
+		pTridlg->mode = 2;
+		pTridlg->ShowWindow(SW_SHOW);
 	}
 }

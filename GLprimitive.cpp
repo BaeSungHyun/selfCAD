@@ -2,11 +2,14 @@
 #include "GLprimitive.h"
 
 GLprimitive::GLprimitive() {
-
+	setOffset(6);
+	vertex = new float[offset];
 }
 
 GLprimitive::GLprimitive(const char* VerPath, const char* FragPath) {
 	setShader(VerPath, FragPath);
+	setOffset(6);
+	vertex = new float[offset];
 }
 
 void GLprimitive::setShader(const char* VerPath, const char* FragPath) {
@@ -18,7 +21,6 @@ void GLprimitive::setShader(const char* VerPath, const char* FragPath) {
 // not actually needed because we're using the same shader as axisdim()
 void GLprimitive::compileShader(glm::mat4 model, glm::mat4 view, glm::mat4 camera, glm::mat4 projection) {
 	(*shader).use();
-
 	(*shader).setMat4("projection", projection);
 	(*shader).setMat4("camera", camera);
 	(*shader).setMat4("view", view);
@@ -26,16 +28,13 @@ void GLprimitive::compileShader(glm::mat4 model, glm::mat4 view, glm::mat4 camer
 }
 
 GLprimitive::GLprimitive(const GLprimitive& old) {
-	vertex[0] = old.vertex[0];
-	vertex[1] = old.vertex[1];
-	vertex[2] = old.vertex[2];
-	vertex[3] = old.vertex[3];
-	vertex[4] = old.vertex[4];
-	vertex[5] = old.vertex[5];
+	for (int k = 0; k < offset; ++k) {
+		vertex[k] = old.vertex[k];
+	}
 
 	capacity = old.capacity;
 
-	for (int i = 0; i < 6 * capacity; ++i)
+	for (int i = 0; i < offset * capacity; ++i)
 		vertices[i] = old.vertices[i];
 
 	shader = old.shader;
@@ -69,7 +68,7 @@ void GLprimitive::setZ(float newZ) {
 	vertex[2] = newZ;
 }
 
-float* GLprimitive::getVertex() {
+float*& GLprimitive::getVertex() {
 	return vertex;
 }
 
@@ -101,7 +100,7 @@ void GLprimitive::setCZ(float newCZ) {
 int GLprimitive::getCapacity() const {
 	return capacity;
 }
-void GLprimitive::setCapacity(int addCapacity) {
+void GLprimitive::addCapacity(int addCapacity) {
 	capacity += addCapacity;
 }
 
@@ -120,27 +119,33 @@ void GLprimitive::setVertex(float x, float y, float z, float cx, float cy, float
 	setCZ(cz);
 }
 void GLprimitive::pushVertex() {
-	float* temp = new float[6*(capacity + 1)];
+	float* temp = new float[offset * (capacity + 1)];
 	for (int i = 0; i < capacity; ++i) {
-		temp[6 * i] = vertices[6 * i];
-		temp[6 * i + 1] = vertices[6 * i + 1];
-		temp[6 * i + 2] = vertices[6 * i + 2];
-		temp[6 * i + 3] = vertices[6 * i + 3];
-		temp[6 * i + 4] = vertices[6 * i + 4];
-		temp[6 * i + 5] = vertices[6 * i + 5];
+		for (int k = 0; k < offset; ++k) {
+			temp[offset * i +k] = vertices[offset * i + k];
+		}
 	}
-	temp[6 * capacity] = vertex[0];
-	temp[6 * capacity + 1] = vertex[1];
-	temp[6 * capacity + 2] = vertex[2];
-	temp[6 * capacity + 3] = vertex[3];
-	temp[6 * capacity + 4] = vertex[4];
-	temp[6 * capacity + 5] = vertex[5];
-
+	for (int k = 0; k < offset; ++k) {
+		temp[offset * capacity + k] = vertex[k];
+	}
 	delete[] vertices;
 	vertices = temp;
 	
-	setCapacity(1);
+	addCapacity(1);
 } 
+
+void GLprimitive::popVertex() {
+	float* temp = new float[offset * (capacity)-1];
+	for (int i = 0; i < capacity - 1; ++i) {
+		for (int k = 0; k < offset; ++k) {
+			temp[offset * i + k] = vertices[offset * i + k];
+		}
+	}
+	delete[] vertices;
+	vertices = temp;
+
+	addCapacity(-1);
+}
 
 // DRAWING
 
@@ -169,16 +174,13 @@ void GLprimitive::draw() {
 
 // OVERLOAD = 
 void GLprimitive::operator=(const GLprimitive & old){
-	vertex[0] = old.vertex[0];
-	vertex[1] = old.vertex[1];
-	vertex[2] = old.vertex[2];
-	vertex[3] = old.vertex[3];
-	vertex[4] = old.vertex[4];
-	vertex[5] = old.vertex[5];
+	for (int k = 0; k < offset; ++k) {
+		vertex[k] = old.vertex[k];
+	}
 
 	capacity = old.capacity;
 
-	for (int i = 0; i < 6 * capacity; ++i)
+	for (int i = 0; i < offset * capacity; ++i)
 		vertices[i] = old.vertices[i];
 
 	shader = old.shader;
@@ -187,4 +189,9 @@ void GLprimitive::operator=(const GLprimitive & old){
 // OBJECT OUTLINE
 void GLprimitive::setOutline(BOOL bit) {
 	outline = bit;
+}
+
+// OFFSET
+void GLprimitive::setOffset(int off) {
+	offset = off;
 }

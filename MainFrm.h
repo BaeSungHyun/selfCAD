@@ -38,6 +38,8 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnLineToolbar();
 	afx_msg void OnLineToolbarReturn();
+	afx_msg void OnPolyToolbar();
+	afx_msg void OnPolyToolbarReturn();
 	DECLARE_MESSAGE_MAP()
 };
 

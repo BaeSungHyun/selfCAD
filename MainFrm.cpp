@@ -20,6 +20,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_CREATE()
 	ON_COMMAND(ID_LINE_TOOLBAR, &CMainFrame::OnLineToolbar)
 	ON_COMMAND(ID_LINE_TOOLBAR_RETURN, &CMainFrame::OnLineToolbarReturn)
+	ON_COMMAND(ID_POLY_TOOLBAR, &CMainFrame::OnPolyToolbar)
+	ON_COMMAND(ID_POLY_TOOLBAR_RETURN, &CMainFrame::OnPolyToolbarReturn)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -107,6 +109,20 @@ void CMainFrame::OnLineToolbar() {
 void CMainFrame::OnLineToolbarReturn() {
 	if (!m_wndToolBar.LoadToolBar(IDR_MAINFRAME))
 	{
+		TRACE0("Failed to create toolbar\n");
+		return; // fail to create
+	}
+}
+
+void CMainFrame::OnPolyToolbar() {
+	if (!m_wndToolBar.LoadToolBar(IDR_UPDATE_POLY_TOOLBAR)) {
+		TRACE0("Failed to create toolbar\n");
+		return;
+	}
+}
+
+void CMainFrame::OnPolyToolbarReturn() {
+	if (!m_wndToolBar.LoadToolBar(IDR_MAINFRAME)) {
 		TRACE0("Failed to create toolbar\n");
 		return; // fail to create
 	}

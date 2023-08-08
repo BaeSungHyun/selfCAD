@@ -10,6 +10,7 @@
 #include "Layer.h"
 #include "Point.h"
 #include "Line.h"
+#include "Triangle.h"
 
 class CstructureView : public CView
 {
@@ -29,6 +30,7 @@ public:
 	// Point Dialog
 	Point* pPointdlg;
 	Line* pLinedlg;
+	Triangle* pTridlg;
 
 
 	// transformations
@@ -127,6 +129,9 @@ public:
 	afx_msg void OnLinesToolbar();
 	afx_msg void OnLineStripToolbar();
 	afx_msg void OnLineLoopToolbar();
+	afx_msg void OnPolyTriToolbar();
+	afx_msg void OnPolyRecToolbar();
+	afx_msg void OnPolyCircleToolbar();
 };
 
 #ifndef _DEBUG  // debug version in structureView.cpp

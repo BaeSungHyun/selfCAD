@@ -29,9 +29,9 @@ Line::~Line()
 void Line::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Text(pDX, IDC_LINE_X, lineX);
-	DDX_Text(pDX, IDC_LINE_Y, lineY);
-	DDX_Text(pDX, IDC_LINE_Z, lineZ);
+	DDX_Text(pDX, IDC_LINE_X, lineZ);
+	DDX_Text(pDX, IDC_LINE_Y, lineX);
+	DDX_Text(pDX, IDC_LINE_Z, lineY);
 }
 
 
@@ -55,7 +55,7 @@ void Line::OnOK()
 
 	GLprimitive* pLine{ nullptr };
 	pLine = pView->pLayer->getPrimitive(pView->pLayer->LINE);
-	pLine->setVertex(lineX, lineY, lineZ);
+	pLine->setVertex(lineX, lineY, lineZ, 0.0f, 0.0f, 0.0f);
 	pLine->setMode(mode); 
 	pLine->pushVertex();
 
@@ -76,15 +76,15 @@ void Line::OnCancel()
 
 	GLprimitive* pLine{ nullptr };
 	pLine = pView->pLayer->getPrimitive(pView->pLayer->LINE);
+	pLine->popVertex();
 	if (mode == 2) {
-		GLprimitive* pLine{ nullptr };
-		pLine = pView->pLayer->getPrimitive(pView->pLayer->LINE);
 		reinterpret_cast<GLline*>(pLine)->loopComplete();
 	}
-	reinterpret_cast<GLline*>(pView->pLayer->getPrimitive(pView->pLayer->LINE))->setIndiCapacity(0);
-	
 	pLine->drawing();
 	pDoc->UpdateAllViews(NULL);
+	reinterpret_cast<GLline*>(pView->pLayer->getPrimitive(pView->pLayer->LINE))->setIndiCapacity(0);
+	
+
 	
 	DestroyWindow();
 }

@@ -2,6 +2,7 @@
 #include <afx.h>
 #include "GLpoint.h"
 #include "GLline.h"
+#include "GLpoly.h"
 
 class Layer : public CObject
 {
@@ -23,7 +24,7 @@ private:
 	GLprimitive* point = new GLpoint{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" }; // point, line, triangle... etc.;
 	// TEMPORARY
 	GLprimitive* line = new GLline{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
-	GLprimitive* poly = new GLpoint{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
+	GLprimitive* poly = new GLpoly{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
 	GLprimitive* primitives[3]{ point, line, poly }; // array of pointer 
 };
 

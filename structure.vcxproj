@@ -198,6 +198,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GLline.h" />
     <ClInclude Include="GLpoint.h" />
+    <ClInclude Include="GLpoly.h" />
     <ClInclude Include="GLprimitive.h" />
     <ClInclude Include="include\glad.h" />
     <ClInclude Include="include\khrplatform.h" />
@@ -212,6 +213,7 @@
     <ClInclude Include="structureDoc.h" />
     <ClInclude Include="structureView.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Triangle.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -222,6 +224,7 @@
     </ClCompile>
     <ClCompile Include="GLline.cpp" />
     <ClCompile Include="GLpoint.cpp" />
+    <ClCompile Include="GLpoly.cpp" />
     <ClCompile Include="GLprimitive.cpp" />
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="Line.cpp" />
@@ -236,6 +239,7 @@
     <ClCompile Include="structure.cpp" />
     <ClCompile Include="structureDoc.cpp" />
     <ClCompile Include="structureView.cpp" />
+    <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="glsl\threeaxis.fs" />
@@ -247,6 +251,7 @@
     <ResourceCompile Include="structure.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\bmp00001.bmp" />
     <Image Include="res\icon1.ico" />
     <Image Include="res\structure.ico" />
     <Image Include="res\structureDoc.ico" />

@@ -6,8 +6,9 @@ GLpoint::GLpoint(const char* verPath, const char* fragPath)
 {
 }
 
-GLpoint::GLpoint() {
-
+GLpoint::GLpoint() 
+	:GLprimitive()
+{
 }
 
 void GLpoint::draw() {

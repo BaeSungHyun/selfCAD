@@ -19,8 +19,10 @@ public:
 	virtual void compileShader(glm::mat4, glm::mat4, glm::mat4, glm::mat4);
 
 	// main vertex[6] - both point[3] and color[3] 
-	virtual void setVertex(float, float, float, float = 0.0f, float = 0.0f, float = 0.0f);
+	// point color to default 1.0f 1.0f 1.0f
+	virtual void setVertex(float, float, float, float = 1.0f, float = 1.0f, float = 1.0f);
 	virtual void pushVertex();
+	virtual void popVertex();
 
 	// vertex
 	virtual float getX(int) const;
@@ -31,7 +33,7 @@ public:
 	virtual void setY(float);
 	virtual void setZ(float);
 
-	virtual float* getVertex();
+	virtual float*& getVertex();
 	virtual float* getpVertices();
 
 	// color
@@ -44,7 +46,7 @@ public:
 	virtual void setCZ(float);
 
 	// capacity
-	virtual void setCapacity(int);
+	virtual void addCapacity(int);
 	virtual int getCapacity() const;
 
 	// mode
@@ -59,20 +61,24 @@ public:
 	// set object outlinining
 	void setOutline(BOOL);
 
+	// offset
+	void setOffset(int);
+
 private: // why not change to protected
-
-	float vertex[6]{ 0.0f };
-	int capacity{ 0 };
-	float* vertices{ new float[6 * capacity] };
-
 	int indexLayer{ 0 };
 
 	// whether to use object outlining or not
 	BOOL outline{ FALSE };
 
+	float* vertex{ nullptr }; // contains coordinate and color
+	float* vertices{ new float[offset * capacity] };
+
 protected:
 	unsigned int VAO;
 	unsigned int VBO;
 	Shader* shader{ 0 };
+
+	int capacity{ 0 };
+	int offset;
 };
 

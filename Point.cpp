@@ -27,9 +27,9 @@ Point::~Point()
 void Point::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Text(pDX, IDC_POINT_X, pointX);
-	DDX_Text(pDX, IDC_POINT_Y, pointY);
-	DDX_Text(pDX, IDC_POINT_Z, pointZ);
+	DDX_Text(pDX, IDC_POINT_X, pointZ);
+	DDX_Text(pDX, IDC_POINT_Y, pointX);
+	DDX_Text(pDX, IDC_POINT_Z, pointY);
 }
 
 
