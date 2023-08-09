@@ -26,6 +26,12 @@ public:
 	// RECTANGELS pushVertex utility function
 	void RECTANGLESLinepushVertex();
 	void RECTANGLESpushVertex();
+
+	// CIRCLES pushVertex utility function
+	void CIRCLESLinepushVertex();
+	void CIRCLESpushVertex();
+	void CIRCLEsetRadius(float);
+
 	
 	// overrides
 	void setVertex(float, float, float, float = 1.0f, float = 1.0f, float = 1.0f);
@@ -43,6 +49,7 @@ private:
 	Mode mode;
 
 	int mRadio; // for direction in RECTANGLE, CIRCLE
+	float radius{ 0.0f }; // CIRCLE
 
 	int lineIndividualCapacity{ 0 };
 	int individualCapacity{ 0 };

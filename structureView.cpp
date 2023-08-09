@@ -55,6 +55,7 @@ CstructureView::CstructureView() noexcept
 	pLinedlg = NULL;
 	pTridlg = NULL;
 	pRectdlg = NULL;
+	pCircledlg = NULL;
 }
 
 CstructureView::~CstructureView()
@@ -469,8 +470,8 @@ BOOL CstructureView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	zoom -= static_cast<float>(zDelta / 120);
 	if (zoom < 1.0f)
 		zoom = 1.0f;
-	if (zoom > 45.0f)
-		zoom = 45.0f;
+	if (zoom > 60.0f)
+		zoom = 60.0f;
 
 
 	projection = glm::perspective(glm::radians(zoom), cx / cy, 0.1f, 100.0f);
@@ -582,18 +583,18 @@ void CstructureView::OnPolyRecToolbar() {
 }
 
 void CstructureView::OnPolyCircleToolbar() {
-	if (pTridlg != NULL) {
-		pTridlg->SetFocus();
+	if (pCircledlg != NULL) {
+		pCircledlg->SetFocus();
 	}
 	else {
-		pTridlg = new Triangle(this);
-		pTridlg->pView = this;
-		pTridlg->triX = 0;
-		pTridlg->triY = 0;
-		pTridlg->triZ = 0;
+		pCircledlg = new Circle(this);
+		pCircledlg->pView = this;
+		pCircledlg->circleX = 0;
+		pCircledlg->circleY = 0;
+		pCircledlg->circleZ = 0;
 
-		pTridlg->Create(IDD_TRIANGLE_DIALOG);
-		pTridlg->mode = 2;
-		pTridlg->ShowWindow(SW_SHOW);
+		pCircledlg->Create(IDD_CIRCLE_DIALOG);
+		pCircledlg->mode = 2;
+		pCircledlg->ShowWindow(SW_SHOW);
 	}
 }

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "GLpoly.h"
 
+
 GLpoly::GLpoly(const char* verPath, const char* fragPath) {
 	this->setShader(verPath, fragPath);
 	addCapacity(0);
@@ -183,6 +184,63 @@ void GLpoly::RECTANGLESpushVertex() {
 	}
 }
 
+// indexCapacity += 2*radius*3  * 3
+// lineIndexCapacity += 2*radius*3 * 2
+
+void GLpoly::CIRCLESLinepushVertex() {
+	int increment{ 2 * static_cast<int>(radius) * 3 * 2 };
+	unsigned int* indexTemp = new unsigned int[lineIndexCapacity + increment];
+	for (int j = 0; j < lineIndexCapacity; ++j) {
+		indexTemp[j] = lineIndices[j];
+	}
+	// getCapacity() -> first. Remember it is before GLprimitive::pushVertex()
+	int capacity{ getCapacity() };
+	int first{ getCapacity() };
+	for (int j = 0; j < increment/2; ++j) {
+		indexTemp[lineIndexCapacity + 2*j] = capacity + 1;
+		if (j == increment / 2 - 1) {
+			indexTemp[lineIndexCapacity + 2 * j + 1] = first + 1;
+			break;
+		}
+		indexTemp[lineIndexCapacity + 2*j + 1] = capacity + 2;
+		++capacity;
+	}
+	delete[] lineIndices;
+	lineIndices = indexTemp;
+
+	lineIndexCapacity += increment;
+}
+
+void GLpoly::CIRCLESpushVertex() {
+	int increment{ 2 * static_cast<int>(radius) * 3 * 3 };
+	unsigned int* indexTemp = new unsigned int[indexCapacity + increment];
+	for (int j = 0; j < indexCapacity; ++j) {
+		indexTemp[j] = indices[j];
+	}
+	// getCapacity() -> first. Remember it is before GLprimitive::pushVertex()
+	int capacity{ getCapacity() };
+	int first{ getCapacity() };
+	for (int j = 0; j < increment / 3; ++j) {
+		indexTemp[indexCapacity + 3*j] = first;
+		indexTemp[indexCapacity + 3*j + 1] = capacity + 1;
+		if (j == increment / 3 - 1) {
+			indexTemp[indexCapacity + 3 * j + 2] = first + 1;
+			break;
+		}
+		indexTemp[indexCapacity + 3*j + 2] = capacity + 2;
+		++capacity;
+	}
+	delete[] indices;
+	indices = indexTemp;
+
+	indexCapacity += increment;
+}
+
+void GLpoly::CIRCLEsetRadius(float radius) {
+	this->radius = radius;
+}
+
+
 void GLpoly::pushVertex() {
 	// index
 	switch (mode) {
@@ -242,7 +300,32 @@ void GLpoly::pushVertex() {
 		break;
 	}
 	case FAN: {
-
+		CIRCLESLinepushVertex();
+		CIRCLESpushVertex();
+		GLprimitive::pushVertex();
+		if (mRadio == 0) { // x-axis in dialog but in real z-axis
+			// x = radius * cos(2*pi / 2*radius*3 * theta);
+			// for (theta = 0; theta < 2*radius*3; ++theta)
+			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
+				this->setVertex(radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta), 
+					radius * glm::sin(2* 3.14159265358979323846264338327950288 / (2*radius * 3) * theta), getZ(getCapacity() - 1));
+				GLprimitive::pushVertex();
+			}
+		}
+		else if (mRadio == 1) { // y-axis in dialog but in real x-axis
+			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
+				this->setVertex(getX(getCapacity() - 1), radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta)
+					, radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta));
+				GLprimitive::pushVertex();
+			}
+		}
+		else if (mRadio == 2) { // z-axis in dialog but in real y-axis
+			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
+				this->setVertex(radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
+					getY(getCapacity() - 1), radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta));
+				GLprimitive::pushVertex();
+			}
+		}
 		break;
 	}
 	}
@@ -402,6 +485,10 @@ void GLpoly::drawing() {
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	CString str;
+	str.Format(_T("%d, %d, %d"), indexCapacity, lineIndexCapacity, getCapacity());
+	MessageBox(NULL, str, NULL, MB_OK);
 }
 
 // glPolygonMode 를 effective하게 하는 방법도 있으면 좋겠다.

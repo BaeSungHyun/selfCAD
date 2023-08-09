@@ -1,0 +1,4 @@
+** Face Culling
+OpenGL checks all the faces that are 'front facing' towards the viewer and renders those while discarding all the faces that are 'back facing', saving us a lot of fragment shader calls. We do need to tell OpenGL which of the faces we use are actually the front faces and which faces are the back faces. OpenGL uses a clever trick for this by analyzing the 'winding order' of the vertex data. 
+
+By default, triangles defined with counter-clockwise vertices are processed as front-facing triangles.

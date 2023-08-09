@@ -12,6 +12,7 @@
 #include "Line.h"
 #include "Triangle.h"
 #include "Rectangle.h"
+#include "Circle.h"
 
 class CstructureView : public CView
 {
@@ -33,6 +34,7 @@ public:
 	Line* pLinedlg;
 	Triangle* pTridlg;
 	Rectangles* pRectdlg;
+	Circle* pCircledlg;
 
 	// transformations
 	glm::mat4 model{glm::mat4(1.0f)};

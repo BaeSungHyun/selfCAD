@@ -55,8 +55,10 @@ void Rectangles::OnOK()
 
 	UpdateData(TRUE);
 
-	if (mRadio == -1)
+	if (mRadio == -1) {
 		MessageBox(_T("Select direction of rectangle"));
+		return;
+	}
 
 	GLprimitive* pPoly{ nullptr };
 	pPoly = pView->pLayer->getPrimitive(pView->pLayer->POLY);
