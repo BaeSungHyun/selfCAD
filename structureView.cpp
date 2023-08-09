@@ -54,6 +54,7 @@ CstructureView::CstructureView() noexcept
 	pPointdlg = NULL;
 	pLinedlg = NULL;
 	pTridlg = NULL;
+	pRectdlg = NULL;
 }
 
 CstructureView::~CstructureView()
@@ -564,19 +565,19 @@ void CstructureView::OnPolyTriToolbar() {
 
 // BEFORE MAKING DIALOGUES FOR BELOW TWE FUNCTIONS
 void CstructureView::OnPolyRecToolbar() {
-	if (pTridlg != NULL) {
-		pTridlg->SetFocus();
+	if (pRectdlg != NULL) {
+		pRectdlg->SetFocus();
 	}
 	else {
-		pTridlg = new Triangle(this);
-		pTridlg->pView = this;
-		pTridlg->triX = 0;
-		pTridlg->triY = 0;
-		pTridlg->triZ = 0;
+		pRectdlg = new Rectangles(this);
+		pRectdlg->pView = this;
+		pRectdlg->rectX = 0;
+		pRectdlg->rectY = 0;
+		pRectdlg->rectZ = 0;
 
-		pTridlg->Create(IDD_TRIANGLE_DIALOG);
-		pTridlg->mode = 1;
-		pTridlg->ShowWindow(SW_SHOW);
+		pRectdlg->Create(IDD_RECT_DIALOG);
+		pRectdlg->mode = 1;
+		pRectdlg->ShowWindow(SW_SHOW);
 	}
 }
 

@@ -51,6 +51,10 @@ void GLpoly::setMode(int type) {
 	mode = static_cast<Mode>(type);
 }
 
+void GLpoly::setRadio(int mRadio) {
+	this->mRadio = mRadio;
+}
+
 void GLpoly::TRIANGLESLinepushVertex() {
 	if (lineIndividualCapacity == 2) { // 2, 4
 		unsigned int* indexTemp = new unsigned int[lineIndexCapacity + 4];
@@ -96,59 +100,266 @@ void GLpoly::TRIANGLESpushVertex() {
 	++individualCapacity;
 }
 
+void GLpoly::RECTANGLESLinepushVertex() {
+	switch (mRadio) {
+	case 0:
+	case 1: { // vertical
+		if (lineIndividualCapacity == 1) {
+			unsigned int* indexTemp = new unsigned int[lineIndexCapacity + 7];
+			for (int j = 0; j < lineIndexCapacity; ++j) {
+				indexTemp[j] = lineIndices[j];
+			}
+			// before incrementing getCapacity() -> so currently 1
+			indexTemp[lineIndexCapacity] = getCapacity() + 2;
+			indexTemp[lineIndexCapacity + 1] = getCapacity() - 1;
+			indexTemp[lineIndexCapacity + 2] = getCapacity() + 1;
+			indexTemp[lineIndexCapacity + 3] = getCapacity();
+			indexTemp[lineIndexCapacity + 4] = getCapacity() + 1;
+			indexTemp[lineIndexCapacity + 5] = getCapacity();
+			indexTemp[lineIndexCapacity + 6] = getCapacity() + 2;
+
+			delete[] lineIndices;
+			lineIndices = indexTemp;
+
+			lineIndividualCapacity = 0;
+			lineIndexCapacity += 7;
+			
+		}
+		else if (lineIndividualCapacity == 0) {
+			unsigned int* indexTemp = new unsigned int[lineIndexCapacity + 1];
+			for (int j = 0; j < lineIndexCapacity; ++j) {
+				indexTemp[j] = lineIndices[j];
+			}
+			indexTemp[lineIndexCapacity] = getCapacity();
+
+			delete[] lineIndices;
+			lineIndices = indexTemp;
+
+			++lineIndividualCapacity;
+			++lineIndexCapacity;
+		}
+		break;
+	} 
+	}
+}
+
+void GLpoly::RECTANGLESpushVertex() {
+	switch (mRadio) {
+	case 0:
+	case 1: { // vertical
+		if (individualCapacity % 6 == 1) {
+			unsigned int* indexTemp = new unsigned int[indexCapacity + 5];
+			for (int j = 0; j < indexCapacity; ++j) {
+				indexTemp[j] = indices[j];
+			}
+			// getCapcity() = at the start 1
+			indexTemp[indexCapacity] = getCapacity() + 1;
+			indexTemp[indexCapacity + 1] = getCapacity() + 2;
+			indexTemp[indexCapacity + 2] = getCapacity();
+			indexTemp[indexCapacity + 3] = getCapacity() + 1;
+			indexTemp[indexCapacity + 4] = getCapacity() + 2;
+
+			delete[] indices;
+			indices = indexTemp;
+
+			individualCapacity += 5;
+			indexCapacity += 5;
+		}
+		else if (individualCapacity % 6 == 0) {
+			unsigned int* indexTemp = new unsigned int[indexCapacity + 1];
+			for (int j = 0; j < indexCapacity; ++j) {
+				indexTemp[j] = indices[j];
+			}
+			indexTemp[indexCapacity] = getCapacity();
+
+			delete[] indices;
+			indices = indexTemp;
+
+			++individualCapacity;
+			++indexCapacity;
+		}
+		break;
+	}
+	}
+}
+
 void GLpoly::pushVertex() {
 	// index
 	switch (mode) {
 	case TRIANGLES: {
 		TRIANGLESpushVertex();
 		TRIANGLESLinepushVertex();
-		break;
-	}
-	case STRIP:
-		break;
-	case FAN:
-		break;
-	}
 
-	// vertex
-	GLprimitive::pushVertex();
+		// vertex
+		GLprimitive::pushVertex();
+		break;
+	}
+	case STRIP: {
+		RECTANGLESpushVertex();
+		RECTANGLESLinepushVertex();
+
+		GLprimitive::pushVertex();
+
+		if (mRadio == 0) {
+
+			// vertex
+			if (individualCapacity % 6 == 0) { // getCapacity() - 2 : first corner / getCapacity() - 1 : second corner
+				// first corner's x and y coordinate. second corner's z coordinate
+				setX(getX(getCapacity() - 2));
+				setY(getY(getCapacity() - 1));
+				setZ(getZ(getCapacity() - 2));
+
+				GLprimitive::pushVertex();
+
+				// getCapacity() changes -> first corner : getCapacity() - 3 / second corner : getCapacity() - 2
+				// first conrner's z coordinate, second corner's x and y coordinates
+				setX(getX(getCapacity() - 2));
+				setY(getY(getCapacity() - 3));
+				setZ(getZ(getCapacity() - 2));
+
+				GLprimitive::pushVertex();
+			}
+		}
+		else if (mRadio == 1) {
+			// vertex
+			if (individualCapacity % 6 == 0) { // getCapacity() - 2 : first corner / getCapacity() - 1 : second corner
+				// first corner's x and y coordinate. second corner's z coordinate
+				setX(getX(getCapacity() - 1)); // second
+				setY(getY(getCapacity() - 2)); // first
+				setZ(getZ(getCapacity() - 2)); // first
+
+				GLprimitive::pushVertex();
+
+				// getCapacity() changes -> first corner : getCapacity() - 3 / second corner : getCapacity() - 2
+				// first conrner's z coordinate, second corner's x and y coordinates
+				setX(getX(getCapacity() - 3)); // first
+				setY(getY(getCapacity() - 3)); // first
+				setZ(getZ(getCapacity() - 2)); // second
+
+				GLprimitive::pushVertex();
+			}
+		}
+		break;
+	}
+	case FAN: {
+
+		break;
+	}
+	}
 }
 
 void GLpoly::popVertex() {
-	while (indexCapacity % 3 != 0) {
-		// index
-		unsigned int* indexTemp = new unsigned int[indexCapacity - 1];
-		for (int j = 0; j < indexCapacity - 1; ++j) {
-			indexTemp[j] = indices[j];
-		}
-		delete[] indices;
-		indices = indexTemp;
-		--indexCapacity;
-		--individualCapacity;
+	switch (mode) {
+	case TRIANGLES: {
+		while (individualCapacity % 3 != 0) {
+			// poly index
+			unsigned int* indexTemp = new unsigned int[indexCapacity - 1];
+			for (int j = 0; j < indexCapacity - 1; ++j) {
+				indexTemp[j] = indices[j];
+			}
+			delete[] indices;
+			indices = indexTemp;
+			--indexCapacity;
+			--individualCapacity;
 
-		// vertex
-		GLprimitive::popVertex();
+			// line index
+			unsigned int* lineIndexTemp = new unsigned int[lineIndexCapacity - 1];
+			for (int j = 0; j < lineIndexCapacity - 1; ++j) {
+				lineIndexTemp[j] = lineIndices[j];
+			}
+			delete[] lineIndices;
+			lineIndices = lineIndexTemp;
+			--lineIndexCapacity;
+			--lineIndividualCapacity;
+
+			// vertex
+			GLprimitive::popVertex();
+		}
+		break;
 	}
+	case STRIP: {
+		while (individualCapacity % 6 != 0) {
+			// poly index
+			unsigned int* indexTemp = new unsigned int[indexCapacity - 1];
+			for (int j = 0; j < indexCapacity - 1; ++j) {
+				indexTemp[j] = indices[j];
+			}
+			delete[] indices;
+			indices = indexTemp;
+			--indexCapacity;
+			--individualCapacity;
+
+			// line index
+			unsigned int* lineIndexTemp = new unsigned int[lineIndexCapacity - 1];
+			for (int j = 0; j < lineIndexCapacity - 1; ++j) {
+				lineIndexTemp[j] = lineIndices[j];
+			}
+			delete[] lineIndices;
+			lineIndices = lineIndexTemp;
+			--lineIndexCapacity;
+			--lineIndividualCapacity;
+
+			// vertex
+			GLprimitive::popVertex();
+		}
+		break;
+	}
+	case FAN: {
+
+		break;
+	}
+	}
+
 }
 
 void GLpoly::drawing() {
-	if (indexCapacity % 3 != 0) {
-		// POINT
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12 * getCapacity(), getpVertices(), GL_STATIC_DRAW);
+	switch (mode) {
+	case TRIANGLES: {
+		if (individualCapacity % 3 != 0) {
+			// POINT
+			glBindVertexArray(VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12 * getCapacity(), getpVertices(), GL_STATIC_DRAW);
 
-		// position attribute
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
+			// position attribute
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
 
-		// point color attribute
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
+			// point color attribute
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
 
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+		break;
 	}
+	case STRIP: {
+		if (individualCapacity % 6 != 0) {
+			// POINT
+			glBindVertexArray(VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12 * getCapacity(), getpVertices(), GL_STATIC_DRAW);
+
+			// position attribute
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+
+			// point color attribute
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+		break;
+	}
+	case FAN: {
+
+		break;
+	}
+	}
+
 	// LINE
 	glBindVertexArray(lineVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -156,12 +367,6 @@ void GLpoly::drawing() {
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndexCapacity, lineIndices, GL_STATIC_DRAW);
-	
-	if (lineIndexCapacity == 6) {
-		CString str;
-		str.Format(_T("%d, %d, %d, %d, %d, %d"), lineIndices[0], lineIndices[1], lineIndices[2], lineIndices[3], lineIndices[4], lineIndices[5]);
-		MessageBox(NULL, str, NULL, MB_OK);
-	}
 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)0);
@@ -174,6 +379,9 @@ void GLpoly::drawing() {
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	//*********************************************************8
+	
 
 	// POLY
 	glBindVertexArray(polyVAO);
@@ -199,13 +407,32 @@ void GLpoly::drawing() {
 // glPolygonMode 를 effective하게 하는 방법도 있으면 좋겠다.
 void GLpoly::draw() {
 	// this is for mode TRIANGLES.. is it all the same for other modes?
-	if (indexCapacity % 3 != 0) {
-		// POINT
-		glBindVertexArray(VAO);
-		glPointSize(pointSize);
-		glDrawArrays(GL_POINTS, 0, getCapacity());
-		glBindVertexArray(0);
+	switch (mode) {
+	case TRIANGLES: {
+		if (individualCapacity % 3 != 0) {
+			// POINT
+			glBindVertexArray(VAO);
+			glPointSize(pointSize);
+			glDrawArrays(GL_POINTS, 0, getCapacity());
+			glBindVertexArray(0);
+		}
+		break;
 	}
+	case STRIP: {
+		if (individualCapacity % 6 != 0) {
+			// POINT 
+			glBindVertexArray(VAO);
+			glPointSize(pointSize);
+			glDrawArrays(GL_POINTS, 0, getCapacity());
+			glBindVertexArray(0);
+		}
+		break;
+	}
+	case FAN: {
+		break;
+	}
+	}
+	
 	// LINE
 	glBindVertexArray(lineVAO);
 	glLineWidth(lineWidth);
@@ -217,9 +444,3 @@ void GLpoly::draw() {
 	glDrawElements(GL_TRIANGLES, indexCapacity, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
-
-/*
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawElements(GL_TRIANGLES, indexCapacity, GL_UNSIGNED_INT, 0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-*/

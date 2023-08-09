@@ -9,8 +9,8 @@
 #define IDD_LINE_DIALOG                 312
 #define IDR_UPDATE_LINE_TOOLBAR         315
 #define IDR_UPDATE_POLY_TOOLBAR         317
-#define IDD_DIALOG1                     319
 #define IDD_TRIANGLE_DIALOG             319
+#define IDD_RECT_DIALOG                 321
 #define IDC_POINT_ERASE_BUTTON          1000
 #define IDC_POINT_X                     1001
 #define IDC_POINT_Y                     1002
@@ -23,6 +23,12 @@
 #define IDC_POLY_X                      1010
 #define IDC_POLY_Y                      1011
 #define IDC_POLY_Z                      1012
+#define IDC_RECT_ERASE_BUTTON           1013
+#define IDC_RADIO1                      1014
+#define IDC_RADIO2                      1015
+#define IDC_RECT_X                      1016
+#define IDC_RECT_Y                      1017
+#define IDC_RECT_Z                      1018
 #define ID_LAYER_LAYER1                 32772
 #define ID_POINT_TOOLBAR                32773
 #define ID_LINE_TOOLBAR                 32774
@@ -40,9 +46,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        321
+#define _APS_NEXT_RESOURCE_VALUE        323
 #define _APS_NEXT_COMMAND_VALUE         32785
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1019
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

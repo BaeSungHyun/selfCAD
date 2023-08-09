@@ -53,15 +53,15 @@ GLprimitive::~GLprimitive() {
 // VERTEX
 // check before if index is above capcity
 float GLprimitive::getX(int index) const {
-	return vertices[6 * (index) + 0]; 
+	return vertices[offset * (index) + 0]; 
 }
 // check before if index is above capcity
 float GLprimitive::getY(int index) const {
-	return vertices[6 * (index) + 1];
+	return vertices[offset * (index) + 1];
 }
 // check before if index is above capcity
 float GLprimitive::getZ(int index) const {
-	return vertices[6 * (index) + 2];
+	return vertices[offset * (index) + 2];
 }
 void GLprimitive::setX(float newX) {
 	vertex[0] = newX;
@@ -114,6 +114,9 @@ void GLprimitive::addCapacity(int addCapacity) {
 
 // MODE
 void GLprimitive::setMode(int mode) {
+	return;
+}
+void GLprimitive::setRadio(int Radio) {
 	return;
 }
 

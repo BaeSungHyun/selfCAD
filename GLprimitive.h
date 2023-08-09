@@ -51,6 +51,7 @@ public:
 
 	// mode
 	virtual void setMode(int);
+	virtual void setRadio(int);
 
 	// how to paint
 	virtual void drawing();

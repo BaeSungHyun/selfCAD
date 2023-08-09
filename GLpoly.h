@@ -17,12 +17,15 @@ public:
 	// STRIP - for rectangles
 	// FAN - for circles, etc.
 	void setMode(int);
+	void setRadio(int);
 	
 	// TRIANGLES pushVertex utility function
 	void TRIANGLESLinepushVertex();
 	void TRIANGLESpushVertex();
 
 	// RECTANGELS pushVertex utility function
+	void RECTANGLESLinepushVertex();
+	void RECTANGLESpushVertex();
 	
 	// overrides
 	void setVertex(float, float, float, float = 1.0f, float = 1.0f, float = 1.0f);
@@ -34,9 +37,12 @@ public:
 private:
 	unsigned int lineVAO;
 	unsigned int polyVAO;
-	unsigned int EBO;
+
+	unsigned int EBO; // polyEBO
 	unsigned int lineEBO;
 	Mode mode;
+
+	int mRadio; // for direction in RECTANGLE, CIRCLE
 
 	int lineIndividualCapacity{ 0 };
 	int individualCapacity{ 0 };
