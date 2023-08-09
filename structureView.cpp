@@ -80,7 +80,7 @@ void CstructureView::OnDraw(CDC* /*pDC*/)
 	if (!pDoc)
 		return;
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	// TODO: add draw code for native data here
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // color and depth already set
@@ -169,6 +169,8 @@ BOOL CstructureView::InitializeOpenGL() {
 	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
+	// glEnable(GL_BLEND); //Enable blending.
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //Set blending function.
 
 	if (GL_VERSION_3_3 > GL_VERSION) {
 		MessageBox(_T("Graphic Driver doens't support OpenGL 3.3 or above"));

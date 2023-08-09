@@ -91,6 +91,8 @@ void Triangle::OnCancel()
 	pTri->drawing();
 	pDoc->UpdateAllViews(NULL);
 
+	reinterpret_cast<GLpoly*>(pView->pLayer->getPrimitive(pView->pLayer->POLY))->setIndiCapacity(0);
+
 	DestroyWindow();
 }
 

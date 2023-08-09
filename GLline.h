@@ -18,6 +18,10 @@ public:
 
 	unsigned int* getpIndices();
 
+	// pushVertex() utility functions
+	void LINESpushVertex();
+	void STRIPpushVertex();
+	void LOOPpushVertex();
 
 	enum Mode { LINES, STRIP, LOOP };
 

@@ -4,14 +4,18 @@
 GLline::GLline(const char* verPath, const char* fragPath)
 {
 	this->setShader(verPath, fragPath);
+	addCapacity(0);
 	setOffset(9);
 	getVertex() = new float[offset];
+	getpVertices() = new float[offset * capacity];
 }
 
 // if this is called, call setShader manually
 GLline::GLline() {
+	addCapacity(0);
 	setOffset(9);
 	getVertex() = new float[offset];
+	getpVertices() = new float[offset * capacity];
 }
 
 GLline::~GLline() {
@@ -58,72 +62,85 @@ void GLline::setMode(int type) {
 	mode = static_cast<Mode>(type);
 }
 
-void GLline::pushVertex() {
-	// index
-	switch (mode) {
-	case LINES: {
+void GLline::LINESpushVertex() {
+	unsigned int* indexTemp = new unsigned int[indexCapacity + 1];
+	for (int j = 0; j < indexCapacity; ++j) {
+		indexTemp[j] = indices[j];
+	}
+	// before incrementing capacity of vertices. So not getCapacity() - 1
+	indexTemp[indexCapacity] = getCapacity();
+	delete[] indices;
+	indices = indexTemp;
+	++indexCapacity;
+}
+
+void GLline::STRIPpushVertex() {
+	if (individualCapacity < 2) { // 0 or 1
 		unsigned int* indexTemp = new unsigned int[indexCapacity + 1];
 		for (int j = 0; j < indexCapacity; ++j) {
 			indexTemp[j] = indices[j];
 		}
-		// before incrementing capacity of vertices. So not getCapacity() - 1
-		indexTemp[indexCapacity] = getCapacity(); 
+		indexTemp[indexCapacity] = getCapacity();
 		delete[] indices;
 		indices = indexTemp;
+		++individualCapacity;
 		++indexCapacity;
+	}
+	else {
+		unsigned int* indexTemp = new unsigned int[indexCapacity + 2];
+		for (int j = 0; j < indexCapacity; ++j) {
+			indexTemp[j] = indices[j];
+		}
+		indexTemp[indexCapacity] = getCapacity() - 1;
+		indexTemp[indexCapacity + 1] = getCapacity();
+		delete[] indices;
+		indices = indexTemp;
+		indexCapacity += 2;
+		individualCapacity += 2;
+	}
+}
+
+void GLline::LOOPpushVertex() {
+	if (individualCapacity < 2) {
+		unsigned int* indexTemp = new unsigned int[indexCapacity + 1];
+		for (int j = 0; j < indexCapacity; ++j) {
+			indexTemp[j] = indices[j];
+		}
+		indexTemp[indexCapacity] = getCapacity();
+		delete[] indices;
+		indices = indexTemp;
+		++individualCapacity;
+		++indexCapacity;
+	}
+	else {
+		unsigned int* indexTemp = new unsigned int[indexCapacity + 2];
+		for (int j = 0; j < indexCapacity; ++j) {
+			indexTemp[j] = indices[j];
+		}
+		indexTemp[indexCapacity] = getCapacity() - 1;
+		indexTemp[indexCapacity + 1] = getCapacity();
+		delete[] indices;
+		indices = indexTemp;
+		indexCapacity += 2;
+		individualCapacity += 2;
+	}
+}
+
+void GLline::pushVertex() {
+	// index
+	switch (mode) {
+	case LINES: {
+		LINESpushVertex();
 		break;
 	}
 	case STRIP: {
-		if (individualCapacity < 2) { // 0 or 1
-			unsigned int* indexTemp = new unsigned int[indexCapacity + 1];
-			for (int j = 0; j < indexCapacity; ++j) {
-				indexTemp[j] = indices[j];
-			}
-			indexTemp[indexCapacity] = getCapacity();
-			delete[] indices;
-			indices = indexTemp;
-			++individualCapacity;
-			++indexCapacity;
-		}
-		else {
-			unsigned int* indexTemp = new unsigned int[indexCapacity + 2];
-			for (int j = 0; j < indexCapacity; ++j) {
-				indexTemp[j] = indices[j];
-			}
-			indexTemp[indexCapacity] = getCapacity()-1;
-			indexTemp[indexCapacity + 1] = getCapacity();
-			delete[] indices;
-			indices = indexTemp;
-			indexCapacity += 2;
-			individualCapacity += 2;
-		}
+		STRIPpushVertex();
 		break;
 	}
-	case LOOP:
-		if (individualCapacity < 2) {
-			unsigned int* indexTemp = new unsigned int[indexCapacity + 1];
-			for (int j = 0; j < indexCapacity; ++j) {
-				indexTemp[j] = indices[j];
-			}
-			indexTemp[indexCapacity] = getCapacity();
-			delete[] indices;
-			indices = indexTemp;
-			++individualCapacity;
-			++indexCapacity;
-		}
-		else {
-			unsigned int* indexTemp = new unsigned int[indexCapacity + 2];
-			for (int j = 0; j < indexCapacity; ++j) {
-				indexTemp[j] = indices[j];
-			}
-			indexTemp[indexCapacity] = getCapacity() - 1;
-			indexTemp[indexCapacity + 1] = getCapacity();
-			delete[] indices;
-			indices = indexTemp;
-			indexCapacity += 2;
-			individualCapacity += 2;
-		}
+	case LOOP: {
+		LOOPpushVertex();
 		break;
+	}
 	}
 
 	// vertex
@@ -150,7 +167,7 @@ void GLline::popVertex() {
 }
 
 void GLline::loopComplete() {
-	if (individualCapacity >= 2) {
+	if (individualCapacity > 2) {
 		unsigned int* indexTemp = new unsigned int[indexCapacity + 2];
 		for (int j = 0; j < indexCapacity; ++j) {
 			indexTemp[j] = indices[j];

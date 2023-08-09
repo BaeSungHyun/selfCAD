@@ -1,15 +1,19 @@
 #include "pch.h"
 #include "GLprimitive.h"
 
-GLprimitive::GLprimitive() {
+GLprimitive::GLprimitive() 
+	: capacity{ 0 } {
 	setOffset(6);
 	vertex = new float[offset];
+	vertices = new float[offset * capacity];
 }
 
-GLprimitive::GLprimitive(const char* VerPath, const char* FragPath) {
+GLprimitive::GLprimitive(const char* VerPath, const char* FragPath)
+	:capacity{ 0 } {
 	setShader(VerPath, FragPath);
 	setOffset(6);
 	vertex = new float[offset];
+	vertices = new float[offset * capacity];
 }
 
 void GLprimitive::setShader(const char* VerPath, const char* FragPath) {
@@ -28,10 +32,11 @@ void GLprimitive::compileShader(glm::mat4 model, glm::mat4 view, glm::mat4 camer
 }
 
 GLprimitive::GLprimitive(const GLprimitive& old) {
-	for (int k = 0; k < offset; ++k) {
-		vertex[k] = old.vertex[k];
+	if (vertex != nullptr) {
+		for (int k = 0; k < offset; ++k) {
+			vertex[k] = old.vertex[k];
+		}
 	}
-
 	capacity = old.capacity;
 
 	for (int i = 0; i < offset * capacity; ++i)
@@ -72,7 +77,7 @@ float*& GLprimitive::getVertex() {
 	return vertex;
 }
 
-float* GLprimitive::getpVertices() {
+float*& GLprimitive::getpVertices() {
 	return vertices;
 }
 
@@ -101,7 +106,10 @@ int GLprimitive::getCapacity() const {
 	return capacity;
 }
 void GLprimitive::addCapacity(int addCapacity) {
-	capacity += addCapacity;
+	if (addCapacity == 0)
+		capacity = 0;
+	else 
+		capacity += addCapacity;
 }
 
 // MODE
@@ -174,8 +182,10 @@ void GLprimitive::draw() {
 
 // OVERLOAD = 
 void GLprimitive::operator=(const GLprimitive & old){
-	for (int k = 0; k < offset; ++k) {
-		vertex[k] = old.vertex[k];
+	if (vertex != nullptr) {
+		for (int k = 0; k < offset; ++k) {
+			vertex[k] = old.vertex[k];
+		}
 	}
 
 	capacity = old.capacity;

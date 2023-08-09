@@ -34,7 +34,7 @@ public:
 	virtual void setZ(float);
 
 	virtual float*& getVertex();
-	virtual float* getpVertices();
+	virtual float*& getpVertices();
 
 	// color
 	virtual float getCX(int) const;
@@ -71,14 +71,14 @@ private: // why not change to protected
 	BOOL outline{ FALSE };
 
 	float* vertex{ nullptr }; // contains coordinate and color
-	float* vertices{ new float[offset * capacity] };
+	float* vertices{ nullptr };
 
 protected:
 	unsigned int VAO;
 	unsigned int VBO;
 	Shader* shader{ 0 };
 
-	int capacity{ 0 };
+	int capacity;
 	int offset;
 };
 
