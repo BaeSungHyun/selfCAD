@@ -25,7 +25,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	int mode{0};
-	CstructureView* pView{ nullptr };
+	CstructureDoc* pDoc{ nullptr };
 	int mRadio;
 	float rectX;
 	float rectY;

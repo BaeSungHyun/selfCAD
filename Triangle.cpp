@@ -46,21 +46,16 @@ END_MESSAGE_MAP()
 void Triangle::OnOK()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
-
 	UpdateData(TRUE);
 
 	GLprimitive* pPoly{ nullptr };
-	pPoly = pView->pLayer->getPrimitive(pView->pLayer->POLY);
+	pPoly = pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY);
 	pPoly->setVertex(triX, triY, triZ, 0.9f, 0.9f, 0.9f); // set color of polygon to dark grey
 	pPoly->setMode(mode);
 	pPoly->pushVertex();
 
 	pPoly->drawing();
-	pView->pLayer->bPoly = TRUE;
+	pDoc->pLayer->bPoly = TRUE;
 
 	pDoc->UpdateAllViews(NULL);
 }
@@ -69,7 +64,7 @@ void Triangle::OnOK()
 void Triangle::PostNcDestroy()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	pView->pTridlg = NULL;
+	pDoc->pTridlg = NULL;
 	delete this;
 }
 
@@ -77,13 +72,8 @@ void Triangle::PostNcDestroy()
 void Triangle::OnCancel()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
-
 	GLprimitive* pTri{ nullptr };
-	pTri = pView->pLayer->getPrimitive(pView->pLayer->POLY);
+	pTri = pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY);
 	pTri->popVertex();
 
 	// if mode == 1, 2
@@ -91,7 +81,7 @@ void Triangle::OnCancel()
 	pTri->drawing();
 	pDoc->UpdateAllViews(NULL);
 
-	reinterpret_cast<GLpoly*>(pView->pLayer->getPrimitive(pView->pLayer->POLY))->setIndiCapacity(0);
+	reinterpret_cast<GLpoly*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY))->setIndiCapacity(0);
 
 	DestroyWindow();
 }

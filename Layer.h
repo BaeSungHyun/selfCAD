@@ -9,8 +9,8 @@ class Layer : public CObject
 public:
 	Layer();
 	virtual ~Layer();
-
-	static enum TYPE {POINT, LINE, POLY};
+	
+	enum TYPE {POINT, LINE, POLY};
 
 	BOOL bPoint{ FALSE };
 	BOOL bLine{ FALSE };

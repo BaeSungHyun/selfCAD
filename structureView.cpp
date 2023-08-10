@@ -36,13 +36,6 @@ BEGIN_MESSAGE_MAP(CstructureView, CView)
 	ON_WM_MOUSEMOVE()
 	ON_WM_RBUTTONUP()
 	ON_WM_MOUSEWHEEL()
-	ON_COMMAND(ID_POINT_TOOLBAR, &CstructureView::OnPointToolbar)
-	ON_COMMAND(ID_LINES_TOOLBAR, &CstructureView::OnLinesToolbar)
-	ON_COMMAND(ID_LINE_STRIP_TOOLBAR, &CstructureView::OnLineStripToolbar)
-	ON_COMMAND(ID_LINE_LOOP_TOOLBAR, &CstructureView::OnLineLoopToolbar)
-	ON_COMMAND(ID_POLY_TRIANGLES, &CstructureView::OnPolyTriToolbar)
-	ON_COMMAND(ID_POLY_RECTANGLES, &CstructureView::OnPolyRecToolbar)
-	ON_COMMAND(ID_POLY_CIRCLE, &CstructureView::OnPolyCircleToolbar)
 END_MESSAGE_MAP()
 
 // CstructureView construction/destruction
@@ -51,18 +44,11 @@ CstructureView::CstructureView() noexcept
 	: m_hRC(0), m_pDC(0)
 {
 	// TODO: add construction code here
-	pPointdlg = NULL;
-	pLinedlg = NULL;
-	pTridlg = NULL;
-	pRectdlg = NULL;
-	pCircledlg = NULL;
 }
 
 CstructureView::~CstructureView()
 {
 	delete axisShader;
-	delete pPointdlg;
-	delete[] pLayer;
 }
 
 BOOL CstructureView::PreCreateWindow(CREATESTRUCT& cs)
@@ -94,7 +80,7 @@ void CstructureView::OnDraw(CDC* /*pDC*/)
 	glDrawArrays(GL_LINES, 0, 6);
 	glBindVertexArray(0);
 	
-	pLayer->draw();
+	pDoc->pLayer->draw();
 
 	glFinish();
 
@@ -143,6 +129,10 @@ CstructureDoc* CstructureView::GetDocument() const // non-debug version is inlin
 #endif //_DEBUG
 
 BOOL CstructureView::InitializeOpenGL() {
+	CstructureDoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+	if (!pDoc)
+		return FALSE;
 	m_pDC = new CClientDC(this);
 
 	if (NULL == m_pDC) {
@@ -183,7 +173,7 @@ BOOL CstructureView::InitializeOpenGL() {
 	glGenBuffers(1, &axisVBO);
 	axisShader = new Shader{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
 
-	pLayer = new Layer[++layerCapacity];
+	pDoc->pLayer = new Layer[++pDoc->layerCapacity];
 
 	return TRUE;
 }
@@ -480,121 +470,3 @@ BOOL CstructureView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
 }
 
-void CstructureView::OnPointToolbar() {
-	if (pPointdlg != NULL) {
-		pPointdlg->SetFocus();
-	}
-	else {
-		pPointdlg = new Point(this);
-		pPointdlg->pView = this;
-		pPointdlg->pointX = 0;
-		pPointdlg->pointY = 0;
-		pPointdlg->pointZ = 0;
-
-		pPointdlg->Create(IDD_POINT_DIALOG);
-		pPointdlg->ShowWindow(SW_SHOW);
-	}
-}
-
-void CstructureView::OnLinesToolbar() {
-	if (pLinedlg != NULL) {
-		pLinedlg->SetFocus();
-	}
-	else {
-		pLinedlg = new Line(this);
-		pLinedlg->pView = this;
-		pLinedlg->lineX = 0;
-		pLinedlg->lineY = 0;
-		pLinedlg->lineZ = 0;
-
-		pLinedlg->Create(IDD_LINE_DIALOG);
-		pLinedlg->mode = 0;
-		pLinedlg->ShowWindow(SW_SHOW);
-	}
-}
-
-void CstructureView::OnLineStripToolbar() {
-	if (pLinedlg != NULL) {
-		pLinedlg->SetFocus();
-	}
-	else {
-		pLinedlg = new Line(this);
-		pLinedlg->pView = this;
-		pLinedlg->lineX = 0;
-		pLinedlg->lineY = 0;
-		pLinedlg->lineZ = 0;
-
-		pLinedlg->Create(IDD_LINE_DIALOG);
-		pLinedlg->mode = 1;
-		pLinedlg->ShowWindow(SW_SHOW);
-	}
-}
-
-void CstructureView::OnLineLoopToolbar() {
-	if (pLinedlg != NULL) {
-		pLinedlg->SetFocus();
-	}
-	else {
-		pLinedlg = new Line(this);
-		pLinedlg->pView = this;
-		pLinedlg->lineX = 0;
-		pLinedlg->lineY = 0;
-		pLinedlg->lineZ = 0;
-
-		pLinedlg->Create(IDD_LINE_DIALOG);
-		pLinedlg->mode = 2;
-		pLinedlg->ShowWindow(SW_SHOW);
-	}
-}
-
-void CstructureView::OnPolyTriToolbar() {
-	if (pTridlg != NULL) {
-		pTridlg->SetFocus();
-	}
-	else {
-		pTridlg = new Triangle(this);
-		pTridlg->pView = this;
-		pTridlg->triX = 0;
-		pTridlg->triY = 0;
-		pTridlg->triZ = 0;
-
-		pTridlg->Create(IDD_TRIANGLE_DIALOG);
-		pTridlg->mode = 0;
-		pTridlg->ShowWindow(SW_SHOW);
-	}
-}
-
-// BEFORE MAKING DIALOGUES FOR BELOW TWE FUNCTIONS
-void CstructureView::OnPolyRecToolbar() {
-	if (pRectdlg != NULL) {
-		pRectdlg->SetFocus();
-	}
-	else {
-		pRectdlg = new Rectangles(this);
-		pRectdlg->pView = this;
-		pRectdlg->rectX = 0;
-		pRectdlg->rectY = 0;
-		pRectdlg->rectZ = 0;
-
-		pRectdlg->Create(IDD_RECT_DIALOG);
-		pRectdlg->mode = 1;
-		pRectdlg->ShowWindow(SW_SHOW);
-	}
-}
-
-void CstructureView::OnPolyCircleToolbar() {
-	if (pCircledlg != NULL) {
-		pCircledlg->SetFocus();
-	}
-	else {
-		pCircledlg = new Circle(this);
-		pCircledlg->pView = this;
-		pCircledlg->circleX = 0;
-		pCircledlg->circleY = 0;
-		pCircledlg->circleZ = 0;
-
-		pCircledlg->Create(IDD_CIRCLE_DIALOG);
-		pCircledlg->mode = 2;
-		pCircledlg->ShowWindow(SW_SHOW);
-	}
-}

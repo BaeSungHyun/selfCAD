@@ -44,21 +44,16 @@ END_MESSAGE_MAP()
 void Point::OnOK()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
-
 	UpdateData(TRUE);
 	
 	GLprimitive* pPoint{ nullptr };
-	pPoint = pView->pLayer->getPrimitive(pView->pLayer->POINT);
+	pPoint = pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT);
 	pPoint->setVertex(pointX, pointY, pointZ);
 	pPoint->pushVertex();
 
 
 	pPoint->drawing();
-	pView->pLayer->bPoint = TRUE;
+	pDoc->pLayer->bPoint = TRUE;
 
 	pDoc->UpdateAllViews(NULL);
 }
@@ -74,7 +69,7 @@ void Point::OnCancel()
 void Point::PostNcDestroy()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	pView->pPointdlg = NULL;
+	pDoc->pPointdlg = NULL;
 	delete this;
 }
 

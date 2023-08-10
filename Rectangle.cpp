@@ -47,12 +47,6 @@ END_MESSAGE_MAP()
 void Rectangles::OnOK()
 {
 	// TODO: Add your specialized code here and/or call the base class
-
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
-
 	UpdateData(TRUE);
 
 	if (mRadio == -1) {
@@ -61,14 +55,14 @@ void Rectangles::OnOK()
 	}
 
 	GLprimitive* pPoly{ nullptr };
-	pPoly = pView->pLayer->getPrimitive(pView->pLayer->POLY);
+	pPoly = pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY);
 	pPoly->setVertex(rectX, rectY, rectZ, 0.9f, 0.9f, 0.9f);
 	pPoly->setMode(mode); // TRIANGLES, STRIP, FAN
 	pPoly->setRadio(mRadio); // direction for RECTANGLE, CIRCLE
 	pPoly->pushVertex();
 
 	pPoly->drawing();
-	pView->pLayer->bPoly = TRUE;
+	pDoc->pLayer->bPoly = TRUE;
 
 	pDoc->UpdateAllViews(NULL);
 }
@@ -77,13 +71,8 @@ void Rectangles::OnOK()
 void Rectangles::OnCancel()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
-
 	GLprimitive* pRect{ nullptr };
-	pRect = pView->pLayer->getPrimitive(pView->pLayer->POLY);
+	pRect = pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY);
 	pRect->setMode(mode);
 	pRect->setRadio(mRadio);
 	pRect->popVertex();
@@ -92,7 +81,7 @@ void Rectangles::OnCancel()
 	pRect->drawing();
 	pDoc->UpdateAllViews(NULL);
 
-	reinterpret_cast<GLpoly*>(pView->pLayer->getPrimitive(pView->pLayer->POLY))->setIndiCapacity(0);
+	reinterpret_cast<GLpoly*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY))->setIndiCapacity(0);
 
 	DestroyWindow();
 }
@@ -101,7 +90,7 @@ void Rectangles::OnCancel()
 void Rectangles::PostNcDestroy()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	pView->pRectdlg = NULL;
+	pDoc->pRectdlg = NULL;
 	delete this;
 }
 

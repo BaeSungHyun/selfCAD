@@ -50,11 +50,6 @@ END_MESSAGE_MAP()
 void Circle::OnOK()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
-
 	UpdateData(TRUE);
 
 	if (mRadio == -1) {
@@ -69,7 +64,7 @@ void Circle::OnOK()
 	}
 
 	GLprimitive* pCircle{ nullptr };
-	pCircle = pView->pLayer->getPrimitive(pView->pLayer->POLY);
+	pCircle = pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY);
 	pCircle->setVertex(circleX, circleY, circleZ, 0.9f, 0.9f, 0.9f);
 	pCircle->setMode(mode);
 	pCircle->setRadio(mRadio);
@@ -77,7 +72,7 @@ void Circle::OnOK()
 	pCircle->pushVertex();
 
 	pCircle->drawing();
-	pView->pLayer->bPoly = TRUE;
+	pDoc->pLayer->bPoly = TRUE;
 
 	pDoc->UpdateAllViews(NULL);
 }
@@ -86,13 +81,6 @@ void Circle::OnOK()
 void Circle::OnCancel()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
-	
-
-
 	DestroyWindow();
 }
 
@@ -100,7 +88,7 @@ void Circle::OnCancel()
 void Circle::PostNcDestroy()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	pView->pCircledlg = NULL;
+	pDoc->pCircledlg = NULL;
 	delete this;
 }
 

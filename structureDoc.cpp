@@ -11,6 +11,8 @@
 #endif
 
 #include "structureDoc.h"
+#include "structureView.h"
+#include "MainFrm.h"
 
 #include <propkey.h>
 
@@ -23,6 +25,13 @@
 IMPLEMENT_DYNCREATE(CstructureDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CstructureDoc, CDocument)
+	ON_COMMAND(ID_POINT_TOOLBAR, &CstructureDoc::OnPointToolbar)
+	ON_COMMAND(ID_LINES_TOOLBAR, &CstructureDoc::OnLinesToolbar)
+	ON_COMMAND(ID_LINE_STRIP_TOOLBAR, &CstructureDoc::OnLineStripToolbar)
+	ON_COMMAND(ID_LINE_LOOP_TOOLBAR, &CstructureDoc::OnLineLoopToolbar)
+	ON_COMMAND(ID_POLY_TRIANGLES, &CstructureDoc::OnPolyTriToolbar)
+	ON_COMMAND(ID_POLY_RECTANGLES, &CstructureDoc::OnPolyRecToolbar)
+	ON_COMMAND(ID_POLY_CIRCLE, &CstructureDoc::OnPolyCircleToolbar)
 END_MESSAGE_MAP()
 
 
@@ -31,11 +40,17 @@ END_MESSAGE_MAP()
 CstructureDoc::CstructureDoc() noexcept
 {
 	// TODO: add one-time construction code here
-
+	pPointdlg = NULL;
+	pLinedlg = NULL;
+	pTridlg = NULL;
+	pRectdlg = NULL;
+	pCircledlg = NULL;
 }
 
 CstructureDoc::~CstructureDoc()
 {
+	delete pPointdlg;
+	delete[] pLayer;
 }
 
 BOOL CstructureDoc::OnNewDocument()
@@ -136,3 +151,136 @@ void CstructureDoc::Dump(CDumpContext& dc) const
 
 
 // CstructureDoc commands
+void CstructureDoc::OnPointToolbar() {
+	if (pPointdlg != NULL) {
+		pPointdlg->SetFocus();
+	}
+	else {
+		// remember AfxGetMainWnd() function only returns pointer when called from the main thread
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pPointdlg = new Point(pView);
+		pPointdlg->pDoc = this;
+		pPointdlg->pointX = 0;
+		pPointdlg->pointY = 0;
+		pPointdlg->pointZ = 0;
+
+		pPointdlg->Create(IDD_POINT_DIALOG);
+		pPointdlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureDoc::OnLinesToolbar() {
+	if (pLinedlg != NULL) {
+		pLinedlg->SetFocus();
+	}
+	else {
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pLinedlg = new Line(pView);
+		pLinedlg->pDoc = this;
+		pLinedlg->lineX = 0;
+		pLinedlg->lineY = 0;
+		pLinedlg->lineZ = 0;
+
+		pLinedlg->Create(IDD_LINE_DIALOG);
+		pLinedlg->mode = 0;
+		pLinedlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureDoc::OnLineStripToolbar() {
+	if (pLinedlg != NULL) {
+		pLinedlg->SetFocus();
+	}
+	else {
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pLinedlg = new Line(pView);
+		pLinedlg->pDoc = this;
+		pLinedlg->lineX = 0;
+		pLinedlg->lineY = 0;
+		pLinedlg->lineZ = 0;
+
+		pLinedlg->Create(IDD_LINE_DIALOG);
+		pLinedlg->mode = 1;
+		pLinedlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureDoc::OnLineLoopToolbar() {
+	if (pLinedlg != NULL) {
+		pLinedlg->SetFocus();
+	}
+	else {
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pLinedlg = new Line(pView);
+		pLinedlg->pDoc = this;
+		pLinedlg->lineX = 0;
+		pLinedlg->lineY = 0;
+		pLinedlg->lineZ = 0;
+
+		pLinedlg->Create(IDD_LINE_DIALOG);
+		pLinedlg->mode = 2;
+		pLinedlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureDoc::OnPolyTriToolbar() {
+	if (pTridlg != NULL) {
+		pTridlg->SetFocus();
+	}
+	else {
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pTridlg = new Triangle(pView);
+		pTridlg->pDoc = this;
+		pTridlg->triX = 0;
+		pTridlg->triY = 0;
+		pTridlg->triZ = 0;
+
+		pTridlg->Create(IDD_TRIANGLE_DIALOG);
+		pTridlg->mode = 0;
+		pTridlg->ShowWindow(SW_SHOW);
+	}
+}
+
+// BEFORE MAKING DIALOGUES FOR BELOW TWE FUNCTIONS
+void CstructureDoc::OnPolyRecToolbar() {
+	if (pRectdlg != NULL) {
+		pRectdlg->SetFocus();
+	}
+	else {
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pRectdlg = new Rectangles(pView);
+		pRectdlg->pDoc = this;
+		pRectdlg->rectX = 0;
+		pRectdlg->rectY = 0;
+		pRectdlg->rectZ = 0;
+
+		pRectdlg->Create(IDD_RECT_DIALOG);
+		pRectdlg->mode = 1;
+		pRectdlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureDoc::OnPolyCircleToolbar() {
+	if (pCircledlg != NULL) {
+		pCircledlg->SetFocus();
+	}
+	else {
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pCircledlg = new Circle(pView);
+		pCircledlg->pDoc = this;
+		pCircledlg->circleX = 0;
+		pCircledlg->circleY = 0;
+		pCircledlg->circleZ = 0;
+
+		pCircledlg->Create(IDD_CIRCLE_DIALOG);
+		pCircledlg->mode = 2;
+		pCircledlg->ShowWindow(SW_SHOW);
+	}
+}

@@ -303,26 +303,27 @@ void GLpoly::pushVertex() {
 		CIRCLESLinepushVertex();
 		CIRCLESpushVertex();
 		GLprimitive::pushVertex();
+		int center{ getCapacity() - 1 };
 		if (mRadio == 0) { // x-axis in dialog but in real z-axis
 			// x = radius * cos(2*pi / 2*radius*3 * theta);
 			// for (theta = 0; theta < 2*radius*3; ++theta)
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
-				this->setVertex(radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta), 
-					radius * glm::sin(2* 3.14159265358979323846264338327950288 / (2*radius * 3) * theta), getZ(getCapacity() - 1));
+				this->setVertex(getX(center) + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
+					getY(center) + radius * glm::sin(2* 3.14159265358979323846264338327950288 / (2*radius * 3) * theta), getZ(center));
 				GLprimitive::pushVertex();
 			}
 		}
 		else if (mRadio == 1) { // y-axis in dialog but in real x-axis
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
-				this->setVertex(getX(getCapacity() - 1), radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta)
-					, radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta));
+				this->setVertex(getX(center), getY(center) + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta)
+					, getZ(center) + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta));
 				GLprimitive::pushVertex();
 			}
 		}
 		else if (mRadio == 2) { // z-axis in dialog but in real y-axis
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
-				this->setVertex(radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
-					getY(getCapacity() - 1), radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta));
+				this->setVertex(getX(center)+ radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
+					getY(center), getZ(center) + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta));
 				GLprimitive::pushVertex();
 			}
 		}

@@ -7,12 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "shader.h"
-#include "Layer.h"
-#include "Point.h"
-#include "Line.h"
-#include "Triangle.h"
-#include "Rectangle.h"
-#include "Circle.h"
+
+class CstructureDoc;
 
 class CstructureView : public CView
 {
@@ -24,18 +20,6 @@ protected: // create from serialization only
 public:
 	CstructureDoc* GetDocument() const;
 
-	// Layer Array
-	int layerCapacity{ 0 };
-	Layer* pLayer = new Layer[layerCapacity];
-
-
-	// Point Dialog
-	Point* pPointdlg;
-	Line* pLinedlg;
-	Triangle* pTridlg;
-	Rectangles* pRectdlg;
-	Circle* pCircledlg;
-
 	// transformations
 	glm::mat4 model{glm::mat4(1.0f)};
 	glm::mat4 view{glm::mat4(1.0f)};
@@ -44,6 +28,9 @@ public:
 
 protected:
 	CToolBar m_wndToolbar;
+
+	CDC* m_pDC;
+	HGLRC m_hRC; // rendering context
 
 	// Operations
 public:
@@ -78,11 +65,11 @@ protected:
 	virtual BOOL SetupViewport(float cx, float cy);
 	virtual BOOL SetupCamera();
 
-private:
 	// Initializing OpenGL
-	BOOL InitializeOpenGL();
-	CDC* m_pDC;
-	HGLRC m_hRC; // rendering context
+	virtual BOOL InitializeOpenGL();
+
+
+private:
 	float cx, cy;
 
 	// camera
@@ -128,13 +115,6 @@ public:
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-	afx_msg void OnPointToolbar();
-	afx_msg void OnLinesToolbar();
-	afx_msg void OnLineStripToolbar();
-	afx_msg void OnLineLoopToolbar();
-	afx_msg void OnPolyTriToolbar();
-	afx_msg void OnPolyRecToolbar();
-	afx_msg void OnPolyCircleToolbar();
 };
 
 #ifndef _DEBUG  // debug version in structureView.cpp

@@ -14,6 +14,8 @@ protected: // create from serialization only
 // Attributes
 public:
 
+protected:
+	CSplitterWnd m_wndSplitter; // for splitting window
 // Operations
 public:
 
@@ -41,6 +43,7 @@ protected:
 	afx_msg void OnPolyToolbar();
 	afx_msg void OnPolyToolbarReturn();
 	DECLARE_MESSAGE_MAP()
+		virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
 };
 
 

@@ -24,7 +24,7 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CstructureView* pView{ nullptr };
+	CstructureDoc* pDoc{ nullptr };
 	int mode;
 	int mRadio;
 	float circleX;

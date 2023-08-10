@@ -7,6 +7,9 @@
 #include "structure.h"
 
 #include "MainFrm.h"
+#include "structureDoc.h"
+#include "structureTopView.h"
+#include "structureView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -48,7 +51,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
+	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_LEFT | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
 		!m_wndToolBar.LoadToolBar(IDR_MAINFRAME))
 	{
 		TRACE0("Failed to create toolbar\n");
@@ -126,4 +129,16 @@ void CMainFrame::OnPolyToolbarReturn() {
 		TRACE0("Failed to create toolbar\n");
 		return; // fail to create
 	}
+}
+
+BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
+{
+	// TODO: Add your specialized code here and/or call the base class
+	m_wndSplitter.CreateStatic(this, 1, 2);
+	m_wndSplitter.CreateView(0, 0, RUNTIME_CLASS(CstructureView),
+		CSize(600, 300), pContext);
+	m_wndSplitter.CreateView(0, 1, RUNTIME_CLASS(CstructureTopView),
+		CSize(600, 300), pContext);
+	SetActiveView((CView*)m_wndSplitter.GetPane(0, 1));
+	return TRUE;
 }

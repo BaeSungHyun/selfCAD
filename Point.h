@@ -25,7 +25,7 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CstructureView* pView{ nullptr };
+	CstructureDoc* pDoc{ nullptr };
 	float pointX;
 	float pointY;
 	float pointZ;

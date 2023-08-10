@@ -46,21 +46,16 @@ END_MESSAGE_MAP()
 void Line::OnOK()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
-
 	UpdateData(TRUE);
 
 	GLprimitive* pLine{ nullptr };
-	pLine = pView->pLayer->getPrimitive(pView->pLayer->LINE);
+	pLine = pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE);
 	pLine->setVertex(lineX, lineY, lineZ, 0.0f, 0.0f, 0.0f);
 	pLine->setMode(mode); 
 	pLine->pushVertex();
 
 	pLine->drawing();
-	pView->pLayer->bLine = TRUE;
+	pDoc->pLayer->bLine = TRUE;
 
 	pDoc->UpdateAllViews(NULL);
 }
@@ -69,20 +64,16 @@ void Line::OnOK()
 void Line::OnCancel()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	CstructureDoc* pDoc = pView->GetDocument();
-	ASSERT_VALID(pDoc);
-	if (!pDoc)
-		return;
 
 	GLprimitive* pLine{ nullptr };
-	pLine = pView->pLayer->getPrimitive(pView->pLayer->LINE);
+	pLine = pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE);
 	pLine->popVertex();
 	if (mode == 2) {
 		reinterpret_cast<GLline*>(pLine)->loopComplete();
 	}
 	pLine->drawing();
 	pDoc->UpdateAllViews(NULL);
-	reinterpret_cast<GLline*>(pView->pLayer->getPrimitive(pView->pLayer->LINE))->setIndiCapacity(0);
+	reinterpret_cast<GLline*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE))->setIndiCapacity(0);
 	
 
 	
@@ -93,7 +84,7 @@ void Line::OnCancel()
 void Line::PostNcDestroy()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	pView->pLinedlg = NULL;
+	pDoc->pLinedlg = NULL;
 	delete this;
 }
 
