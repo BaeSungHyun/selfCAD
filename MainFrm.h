@@ -43,7 +43,6 @@ protected:
 	afx_msg void OnPolyToolbar();
 	afx_msg void OnPolyToolbarReturn();
 	DECLARE_MESSAGE_MAP()
-		virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
 };
 
 

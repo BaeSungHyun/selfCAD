@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "GLline.h"
 
+IMPLEMENT_SERIAL(GLline, GLprimitive, 1);
+
 GLline::GLline(const char* verPath, const char* fragPath)
 {
 	this->setShader(verPath, fragPath);
@@ -8,6 +10,7 @@ GLline::GLline(const char* verPath, const char* fragPath)
 	setOffset(9);
 	getVertex() = new float[offset];
 	getpVertices() = new float[offset * capacity];
+	indices = new unsigned int[0];
 }
 
 // if this is called, call setShader manually
@@ -16,10 +19,35 @@ GLline::GLline() {
 	setOffset(9);
 	getVertex() = new float[offset];
 	getpVertices() = new float[offset * capacity];
+	indices = new unsigned int[0];
+}
+
+void GLline::Serialize(CArchive& ar) {
+	GLprimitive::Serialize(ar);
+
+	if (ar.IsStoring()) {
+		ar << indexCapacity << pointSize << lineWidth;
+		for (int i = 0; i < indexCapacity; ++i) {
+			ar << indices[i];
+		}
+	}
+	else {
+		ar >> indexCapacity >> pointSize >> lineWidth;
+
+		delete[] indices;
+		indices = new unsigned int[indexCapacity];
+
+		for (int i = 0; i < indexCapacity; ++i) {
+			ar >> indices[i];
+		}
+
+		drawing();
+	}
 }
 
 GLline::~GLline() {
 	delete[] indices;
+	// delete shader in base class
 }
 
 void GLline::setVertex(float x, float y, float z, float CX, float CY, float CZ) {
@@ -228,6 +256,7 @@ void GLline::draw() {
 		glPointSize(pointSize);
 		glDrawArrays(GL_POINTS, 0, getCapacity()); // glDrawElements 로 바꾸자.
 		glBindVertexArray(0);
+
 	}
 
 	glBindVertexArray(lineVAO);

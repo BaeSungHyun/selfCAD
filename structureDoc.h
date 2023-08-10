@@ -23,8 +23,8 @@ public:
 	CstructureView* pView{ nullptr };
 
 	// Layer Array
-	int layerCapacity{ 0 };
-	Layer* pLayer = new Layer[layerCapacity];
+	int layerCapacity;
+	Layer* pLayer{ nullptr };
 
 	// Dialog
 	Point* pPointdlg;

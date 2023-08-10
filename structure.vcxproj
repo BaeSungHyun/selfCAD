@@ -213,7 +213,6 @@
     <ClInclude Include="shader.h" />
     <ClInclude Include="structure.h" />
     <ClInclude Include="structureDoc.h" />
-    <ClInclude Include="structureTopView.h" />
     <ClInclude Include="structureView.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Triangle.h" />
@@ -243,7 +242,6 @@
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="structure.cpp" />
     <ClCompile Include="structureDoc.cpp" />
-    <ClCompile Include="structureTopView.cpp" />
     <ClCompile Include="structureView.cpp" />
     <ClCompile Include="Triangle.cpp" />
   </ItemGroup>

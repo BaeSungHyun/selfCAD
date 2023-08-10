@@ -9,6 +9,10 @@
 class GLprimitive : public CObject
 {
 public:
+	DECLARE_SERIAL(GLprimitive);
+
+	void Serialize(CArchive&);
+
 	GLprimitive(const char*, const char*);
 	GLprimitive(const GLprimitive&);
 	GLprimitive();
@@ -66,10 +70,10 @@ public:
 	void setOffset(int);
 
 private: // why not change to protected
-	int indexLayer{ 0 };
+	int indexLayer;
 
 	// whether to use object outlining or not
-	BOOL outline{ FALSE };
+	BOOL outline;
 
 	float* vertex{ nullptr }; // contains coordinate and color
 	float* vertices{ nullptr };

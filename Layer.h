@@ -7,6 +7,10 @@
 class Layer : public CObject
 {
 public:
+	DECLARE_SERIAL(Layer, CObject);
+
+	void Serialize(CArchive& ar);
+
 	Layer();
 	virtual ~Layer();
 	
@@ -21,10 +25,10 @@ public:
 	void drawing(TYPE);
 	void draw();
 private:
-	GLprimitive* point = new GLpoint{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" }; // point, line, triangle... etc.;
+	GLprimitive* point{ nullptr }; // point, line, triangle... etc.;
 	// TEMPORARY
-	GLprimitive* line = new GLline{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
-	GLprimitive* poly = new GLpoly{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
-	GLprimitive* primitives[3]{ point, line, poly }; // array of pointer 
+	GLprimitive* line{ nullptr };
+	GLprimitive* poly{ nullptr };
+	GLprimitive* primitives[3]{ nullptr }; // array of pointer 
 };
 

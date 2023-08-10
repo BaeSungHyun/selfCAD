@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "GLpoly.h"
 
+IMPLEMENT_SERIAL(GLpoly, GLprimitive, 1);
 
 GLpoly::GLpoly(const char* verPath, const char* fragPath) {
 	this->setShader(verPath, fragPath);
@@ -15,6 +16,39 @@ GLpoly::GLpoly() {
 	setOffset(12);
 	getVertex() = new float[offset];
 	getpVertices() = new float[offset * capacity];
+}
+
+void GLpoly::Serialize(CArchive& ar) {
+	GLprimitive::Serialize(ar);
+
+	if (ar.IsStoring()) {
+		ar << lineIndexCapacity << indexCapacity << lineWidth << pointSize;
+
+		for (int i = 0; i < lineIndexCapacity; ++i) {
+			ar << lineIndices[i];
+		}
+		for (int i = 0; i < indexCapacity; ++i) {
+			ar << indices[i];
+		}
+	}
+	else {
+		ar >> lineIndexCapacity >> indexCapacity >> lineWidth >> pointSize;
+
+		delete[] lineIndices;
+		delete[] indices;
+		
+		lineIndices = new unsigned int[lineIndexCapacity];
+		indices = new unsigned int[indexCapacity];
+
+		for (int i = 0; i < lineIndexCapacity; ++i) {
+			ar >> lineIndices[i];
+		}
+		for (int i = 0; i < indexCapacity; ++i) {
+			ar >> indices[i];
+		}
+
+		drawing();
+	}
 }
 
 GLpoly::~GLpoly() {

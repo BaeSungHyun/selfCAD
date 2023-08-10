@@ -1,9 +1,21 @@
 #include "pch.h"
 #include "GLprimitive.h"
 
+IMPLEMENT_SERIAL(GLprimitive, CObject, 1);
+// Serialzation 정리 : 
+/*
+There is reason why it needs empty constructor. It fills in the empty constructor
+and initializes the variables inside the class. Empty Constructor로 실행은 된다.
+Just make sure you're following through the order, unitil the main window pops out.
+그 전에 호출된 함수들은 이미 영향을 줬기 때문에 거기까지 생각해서 해라.
+*/
+
 GLprimitive::GLprimitive() 
-	: capacity{ 0 } {
+{
+	capacity = 0;
 	setOffset(6);
+	indexLayer = 0;
+	outline = FALSE;
 	vertex = new float[offset];
 	vertices = new float[offset * capacity];
 }
@@ -12,8 +24,44 @@ GLprimitive::GLprimitive(const char* VerPath, const char* FragPath)
 	:capacity{ 0 } {
 	setShader(VerPath, FragPath);
 	setOffset(6);
+	indexLayer = 0;
+	outline = FALSE;
 	vertex = new float[offset];
 	vertices = new float[offset * capacity];
+}
+
+void GLprimitive::Serialize(CArchive& ar) {
+	CObject::Serialize(ar);
+
+	if (ar.IsStoring()) {
+		ar << indexLayer << outline;
+		ar << capacity;
+		ar << offset;
+		for (int i = 0; i < offset*capacity; ++i) {
+			ar << vertices[i];
+		}
+		for (int i = 0; i < offset; ++i) {
+			ar << vertex[i];
+		}
+	}
+	else {
+		ar >> indexLayer >> outline;
+		ar >> capacity;
+		ar >> offset;
+
+		delete vertex;
+		delete[] vertices;
+
+		vertex = new float[offset];
+		vertices = new float[offset * capacity];
+
+		for (int i = 0; i < offset*capacity; ++i) {
+			ar >> vertices[i];
+		}
+		for (int i = 0; i < offset; ++i) {
+			ar >> vertex[i];
+		}
+	}
 }
 
 void GLprimitive::setShader(const char* VerPath, const char* FragPath) {
@@ -39,9 +87,10 @@ GLprimitive::GLprimitive(const GLprimitive& old) {
 	}
 	capacity = old.capacity;
 
-	for (int i = 0; i < offset * capacity; ++i)
-		vertices[i] = old.vertices[i];
-
+	if (vertices != nullptr) {
+		for (int i = 0; i < offset * capacity; ++i)
+			vertices[i] = old.vertices[i];
+	}
 	shader = old.shader;
 }
 

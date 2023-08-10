@@ -45,6 +45,8 @@ CstructureDoc::CstructureDoc() noexcept
 	pTridlg = NULL;
 	pRectdlg = NULL;
 	pCircledlg = NULL;
+	layerCapacity = 0;
+	pLayer = new Layer[ layerCapacity ];
 }
 
 CstructureDoc::~CstructureDoc()
@@ -74,10 +76,20 @@ void CstructureDoc::Serialize(CArchive& ar)
 	if (ar.IsStoring())
 	{
 		// TODO: add storing code here
+		ar << layerCapacity;
+		pLayer->Serialize(ar);
+		pLayer->getPrimitive(pLayer->POINT)->Serialize(ar);
+		pLayer->getPrimitive(pLayer->LINE)->Serialize(ar);
+		pLayer->getPrimitive(pLayer->POLY)->Serialize(ar);
 	}
 	else
 	{
 		// TODO: add loading code here
+		ar >> layerCapacity;
+		pLayer->Serialize(ar);
+		pLayer->getPrimitive(pLayer->POINT)->Serialize(ar);
+		pLayer->getPrimitive(pLayer->LINE)->Serialize(ar);
+		pLayer->getPrimitive(pLayer->POLY)->Serialize(ar);
 	}
 }
 

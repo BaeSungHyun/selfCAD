@@ -173,7 +173,8 @@ BOOL CstructureView::InitializeOpenGL() {
 	glGenBuffers(1, &axisVBO);
 	axisShader = new Shader{ "./glsl/threeaxis.vs", "./glsl/threeaxis.fs" };
 
-	pDoc->pLayer = new Layer[++pDoc->layerCapacity];
+	if (pDoc->layerCapacity == 0)
+		pDoc->pLayer = new Layer[++pDoc->layerCapacity]; // 2 개 생성. TopView 때문에?
 
 	return TRUE;
 }

@@ -3,8 +3,12 @@
 class GLline : public GLprimitive
 {
 public:
+	DECLARE_SERIAL(GLline, GLprimitive);
+
 	GLline(const char*, const char*);
 	GLline();
+
+	void Serialize(CArchive& ar);
 
 	virtual ~GLline();
 
@@ -42,7 +46,7 @@ private:
 	int individualCapacity{ 0 };
 
 	int indexCapacity{0};
-	unsigned int* indices = new unsigned int[0];
+	unsigned int* indices{ nullptr };
 
 	float pointSize{ 2.0f };
 	float lineWidth{ 1.5f };

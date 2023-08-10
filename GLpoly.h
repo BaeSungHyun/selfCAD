@@ -3,8 +3,12 @@
 class GLpoly : public GLprimitive
 {
 public:
+	DECLARE_SERIAL(GLpoly, GLprimitive);
+
 	GLpoly(const char*, const char*);
 	GLpoly();
+
+	void Serialize(CArchive&);
 
 	virtual ~GLpoly();
 
