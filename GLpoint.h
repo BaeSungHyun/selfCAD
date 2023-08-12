@@ -11,6 +11,6 @@ public:
 	GLpoint();
 	void draw();
 private:
-	float pointSize {2.0f};
+	float pointSize {3.0f};
 };
 

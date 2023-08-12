@@ -68,6 +68,10 @@ protected:
 	// Initializing OpenGL
 	virtual BOOL InitializeOpenGL();
 
+	// SEARCHING SELECTING
+	virtual void rayCoordinates(float, float, glm::vec4&, glm::vec4&);
+	virtual BOOL rayPoint(const glm::vec4&, const glm::vec4&, const float, const float, const float);
+	virtual BOOL rayLine(const glm::vec4&, const glm::vec4&, const float, const float, const float, const float, const float, const float);
 
 private:
 	float cx, cy;
@@ -103,6 +107,10 @@ private:
 	BOOL first{ FALSE };
 	void DimAxis();
 
+	// Save index for RAY SELECTION
+	int** saveIndex; // array of integer pointers (POINT , LINE , POLY)
+	int saveCapacity[3]{ 0, 0, 0 };
+
 
 // Generated message map functions
 protected:
@@ -115,6 +123,7 @@ public:
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 };
 
 #ifndef _DEBUG  // debug version in structureView.cpp

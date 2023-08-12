@@ -36,6 +36,7 @@ BEGIN_MESSAGE_MAP(CstructureView, CView)
 	ON_WM_MOUSEMOVE()
 	ON_WM_RBUTTONUP()
 	ON_WM_MOUSEWHEEL()
+	ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
 // CstructureView construction/destruction
@@ -44,6 +45,10 @@ CstructureView::CstructureView() noexcept
 	: m_hRC(0), m_pDC(0)
 {
 	// TODO: add construction code here
+	saveIndex = new int* [3];
+	saveIndex[0] = new  int[saveCapacity[0]];
+	saveIndex[1] = new int[saveCapacity[1]];
+	saveIndex[2] = new int[saveCapacity[2]];		
 }
 
 CstructureView::~CstructureView()
@@ -469,5 +474,101 @@ BOOL CstructureView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 
 	Invalidate();
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
+}
+
+void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: Add your message handler code here and/or call default
+	CstructureDoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+	if (!pDoc)
+		return;
+
+	float mouseX = point.x;
+	float mouseY = cy - point.y;
+
+	glm::vec4 nearV;
+	glm::vec4 farV;
+
+	BOOL found{ FALSE };
+	rayCoordinates(mouseX, mouseY, nearV, farV);
+
+	// LINE
+	if (nFlags & MK_CONTROL) {
+		if (rayLine(nearV, farV, 0.0f, 0.0f, 0.0f, 10.0f, 0.0f, 0.0f))
+			MessageBox(_T("got it"));
+		return;
+	}
+
+	// POINT
+	for (int i = 0; i < pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getCapacity(); ++i) {
+		if (rayPoint(nearV, farV, pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getX(i),
+			pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getY(i), pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getZ(i))) {
+			// just add one
+			if (saveCapacity[0] == 0) {
+				// add one point to saveIndex[0] (POINT)
+				int* temp = new int[++saveCapacity[0]];
+				for (int i = 0; i < saveCapacity[0] - 1; ++i) {
+					temp[i] = saveIndex[0][i];
+				}
+				temp[saveCapacity[0] - 1] = i; // same index as GLpoint in Layer
+				delete[] saveIndex[0];
+				saveIndex[0] = temp;
+
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(i, 0.0f);
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->drawing();
+				found = TRUE;
+				break;
+			}
+			// if SHIFT is pressed, select multiple POINTS
+			else if ((nFlags & MK_SHIFT) && saveCapacity[0] != 0) {
+				// add one point to saveIndex[0] (POINT)
+				int* temp = new int[++saveCapacity[0]];
+				for (int j = 0; j < saveCapacity[0] - 1; ++j) {
+					temp[j] = saveIndex[0][j];
+				}
+				temp[saveCapacity[0] - 1] = i; // same index as GLpoint in Layer
+				delete[] saveIndex[0];
+				saveIndex[0] = temp;
+
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(i, 0.0f);
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->drawing();
+				found = TRUE;
+				break;
+			}
+			// delete all and add one
+			else if (saveCapacity[0] != 0) {
+				for (int j = 0; j < saveCapacity[0]; ++j) {
+					pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][j], 1.0f);
+				}
+
+				saveCapacity[0] = 1;
+				delete[] saveIndex[0];
+				saveIndex[0] = new int[1];
+				saveIndex[0][0] = i;
+
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(i, 0.0f);
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->drawing();
+				found = TRUE;
+				break;
+			}
+		}
+	}
+	// when SHIFT is not pressed and if not found. Turn off the yellow color.  
+	if (!found && saveCapacity[0] != 0) {
+		for (int i = 0; i < saveCapacity[0]; ++i) {
+			pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][i], 1.0f);
+		}
+		pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->drawing();
+
+		saveCapacity[0] = 0;
+		int* temp = new int[0];
+		delete saveIndex[0];
+		saveIndex[0] = temp;
+	}
+
+
+
+	Invalidate();
 }
 

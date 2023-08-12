@@ -45,6 +45,10 @@ public:
 	virtual float getCY(int) const;
 	virtual float getCZ(int) const;
 
+	virtual void setVCX(int, float);
+	virtual void setVCY(int, float);
+	virtual void setVCZ(int, float);
+
 	virtual void setCX(float);
 	virtual void setCY(float);
 	virtual void setCZ(float);
