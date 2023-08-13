@@ -72,6 +72,7 @@ protected:
 	virtual void rayCoordinates(float, float, glm::vec4&, glm::vec4&);
 	virtual BOOL rayPoint(const glm::vec4&, const glm::vec4&, const float, const float, const float);
 	virtual BOOL rayLine(const glm::vec4&, const glm::vec4&, const float, const float, const float, const float, const float, const float);
+	virtual void LINEIndexIdentifier(const unsigned int*, int&, int&, const int);
 
 private:
 	float cx, cy;
@@ -108,8 +109,8 @@ private:
 	void DimAxis();
 
 	// Save index for RAY SELECTION
-	int** saveIndex; // array of integer pointers (POINT , LINE , POLY)
-	int saveCapacity[3]{ 0, 0, 0 };
+	int** saveIndex; // array of integer pointers (POINT , LINEINDEX , LINE)
+	int saveCapacity[3]{ 0, 0, 0 }; // POINT , LINEINDEX, LINE
 
 
 // Generated message map functions

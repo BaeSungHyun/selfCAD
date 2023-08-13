@@ -20,7 +20,7 @@ public:
 	void setIndiCapacity(int);
 	int getIndividualCapacity() const;
 
-	unsigned int* getpIndices();
+	unsigned int*& getpIndices();
 
 	// pushVertex() utility functions
 	void LINESpushVertex();

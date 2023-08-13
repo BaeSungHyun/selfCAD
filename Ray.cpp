@@ -59,10 +59,6 @@ BOOL CstructureView::rayLine(const glm::vec4& nearest, const glm::vec4& farthest
 	double distance1 = ((z1 - z3) * ((x1 - x2) * (y3 - y4) - (x3 - x4) * (y1 - y2))) / fraction;
 	double distance2 = (- (y1 - y3) * ((x1 - x2) * (z3 - z4) - (x3 - x4) * (z1 - z2))) / fraction;
 	double distance3 = ((x1 - x3) * ((y1 - y2) * (z3 - z4) - (y3 - y4) * (z1 - z2))) / fraction;
-
-	CString str;
-	str.Format(_T("%f, %f, %f"), distance1, distance2, distance3);
-	MessageBox(str);
 	
 	double angle = ((x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3)) * ((x1 - x4) * (y2 - y4) - (x2 - x4) * (y1 - y4)) + ((x1 - x3) * (z2 - z3) - (x2 - x3) * (z1 - z3)) * ((x1 - x4) * (z2 - z4) - (x2 - x4) * (z1 - z4)) + ((y1 - y3) * (z2 - z3) - (y2 - y3) * (z1 - z3)) * ((y1 - y4) * (z2 - z4) - (y2 - y4) * (z1 - z4));
 
@@ -72,4 +68,17 @@ BOOL CstructureView::rayLine(const glm::vec4& nearest, const glm::vec4& farthest
 	else {
 		return FALSE;
 	}
+}
+
+void CstructureView::LINEIndexIdentifier(const unsigned int* saveIndex, int& min, int& max, const int LINEIndexCapacity) {
+	// compare current elment's first with previous element's second
+	while (min >= 1 && saveIndex[2 * min] == saveIndex[2 * min - 1]) { // at least 2 == 1
+		--min;
+	}
+	min *= 2;
+	/// compare current element's second with next element's first
+	while (max < LINEIndexCapacity && saveIndex[2 * max + 1] == saveIndex[2 * max + 2]) {
+		++max;
+	}
+	max = 2 * max + 1;
 }

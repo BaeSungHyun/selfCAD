@@ -74,7 +74,7 @@ void GLline::setIndiCapacity(int input) {
 	individualCapacity = input;
 }
 
-unsigned int* GLline::getpIndices() {
+unsigned int*& GLline::getpIndices() {
 	return indices;
 }
 

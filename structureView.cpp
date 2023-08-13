@@ -494,11 +494,91 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 	rayCoordinates(mouseX, mouseY, nearV, farV);
 
 	// LINE
-	if (nFlags & MK_CONTROL) {
-		if (rayLine(nearV, farV, 0.0f, 0.0f, 0.0f, 10.0f, 0.0f, 0.0f))
-			MessageBox(_T("got it"));
-		return;
+	// LINE vertecis always go by pairs. In even numbers. getCapacity() : even number.
+	GLline* linePointer = reinterpret_cast<GLline*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE));
+	for (int i = 0; i < linePointer->getIndexCapacity() / 2; ++i) {
+		// put inside getX(EBO element) -> make a line and find a point on it 
+		if (rayLine(nearV, farV, linePointer->getX(linePointer->getpIndices()[2*i]), linePointer->getY(linePointer->getpIndices()[2 * i]),
+			linePointer->getZ(linePointer->getpIndices()[2*i]), linePointer->getX(linePointer->getpIndices()[2 * i + 1]), linePointer->getY(linePointer->getpIndices()[2 * i + 1]),
+			linePointer->getZ(linePointer->getpIndices()[2 * i + 1]))) {
+			if (saveCapacity[1] == 0) { // saveCapacity[1] for saving capacity of LINE vertices
+				// first element equals second element in previous pair or second element equals first element in nextpair
+				int min{ i }, max{ i };
+				LINEIndexIdentifier(linePointer->getpIndices(), min, max, linePointer->getIndexCapacity() / 2);
+				saveCapacity[1] = max - min + 1;
+				int* tempOrder = new int[max - min + 1];
+				for (int k = 0; k < max - min + 1; ++k) {
+					tempOrder[k] = k + min;
+					linePointer->setVCX(linePointer->getpIndices()[k + min], 1.0f);
+					linePointer->setVCY(linePointer->getpIndices()[k + min], 1.0f);
+				}
+				delete[] saveIndex[1];
+				saveIndex[1] = tempOrder;
+
+				linePointer->drawing();
+				found = TRUE;
+				break;
+			}
+			// if SHIFT is pressed, select multiple vertices of LINE
+			else if ((nFlags & MK_SHIFT) && saveCapacity[1] != 0) {
+				int min{ i }, max{ i };
+				LINEIndexIdentifier(linePointer->getpIndices(), min, max, linePointer->getIndexCapacity() / 2);
+				saveCapacity[1] += max - min + 1;
+				int* temp = new int[saveCapacity[1]];
+				for (int j = 0; j < saveCapacity[1] - max + min - 1; ++j) {
+					temp[j] = saveIndex[1][j];
+				}
+				temp[saveCapacity[1] - 2] = 2 * i;
+				temp[saveCapacity[1] - 1] = 2 * i + 1;
+				for (int j = 0; j < max - min + 1; ++j) {
+					temp[j + saveCapacity[1] - max + min - 1] = j + min;
+					linePointer->setVCX(linePointer->getpIndices()[j + min], 1.0f);
+					linePointer->setVCY(linePointer->getpIndices()[j + min], 1.0f);
+				}
+
+				delete[] saveIndex[1];
+				saveIndex[1] = temp;
+
+				linePointer->drawing();
+				found = TRUE;
+				break;
+			}
+			else if (saveCapacity[1] != 0) {
+				for (int j = 0; j < saveCapacity[1]; ++j) {
+					linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
+					linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
+				}
+
+				delete saveIndex[1];
+
+				int min{ i }, max{ i };
+				LINEIndexIdentifier(linePointer->getpIndices(), min, max, linePointer->getIndexCapacity() / 2);
+				saveCapacity[1] = max - min + 1;
+				saveIndex[1] = new int[max - min + 1];
+				for (int k = 0; k < max - min + 1; ++k) {
+					saveIndex[1][k] = k + min;
+					linePointer->setVCX(linePointer->getpIndices()[k + min], 1.0f);
+					linePointer->setVCY(linePointer->getpIndices()[k + min], 1.0f);
+				}
+
+				linePointer->drawing();
+				found = TRUE;
+				break;
+			}
+		}
 	}
+	if (!found && saveCapacity[1] != 0) {
+		for (int i = 0; i < saveCapacity[1]; ++i) {
+			linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
+			linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
+		}
+		linePointer->drawing();
+		
+		saveCapacity[1] = 0;
+		delete[] saveIndex[1];
+		saveIndex[1] = new int[0];
+	}
+	
 
 	// POINT
 	for (int i = 0; i < pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getCapacity(); ++i) {
@@ -508,10 +588,7 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 			if (saveCapacity[0] == 0) {
 				// add one point to saveIndex[0] (POINT)
 				int* temp = new int[++saveCapacity[0]];
-				for (int i = 0; i < saveCapacity[0] - 1; ++i) {
-					temp[i] = saveIndex[0][i];
-				}
-				temp[saveCapacity[0] - 1] = i; // same index as GLpoint in Layer
+				temp[0] = i; // same index as GLpoint in Layer
 				delete[] saveIndex[0];
 				saveIndex[0] = temp;
 
