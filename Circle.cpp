@@ -21,7 +21,6 @@ Circle::Circle(CWnd* pParent /*=nullptr*/)
 	, circleZ(0)
 	, circleRadius(5)
 {
-
 }
 
 Circle::~Circle()

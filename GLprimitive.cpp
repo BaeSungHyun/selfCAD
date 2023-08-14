@@ -132,13 +132,13 @@ float*& GLprimitive::getpVertices() {
 
 // COLOR
 float GLprimitive::getCX(int index) const {
-	return vertices[offset * (index)+3];
+	return vertices[offset * (index) + offset - 7];
 }
 float GLprimitive::getCY(int index) const {
-	return vertices[offset * (index)+4];
+	return vertices[offset * (index) + offset - 4];
 }
 float GLprimitive::getCZ(int index) const {
-	return vertices[offset * (index)+5];
+	return vertices[offset * (index) + offset - 1];
 }
 
 void GLprimitive::setVCX(int index, float CX) {

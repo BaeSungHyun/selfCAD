@@ -493,11 +493,77 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 	BOOL found{ FALSE };
 	rayCoordinates(mouseX, mouseY, nearV, farV);
 
+	// POLY
+	GLpoly* polyPointer = reinterpret_cast<GLpoly*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY));
+	for (int i = 0; i < polyPointer->getIndexCapacity() / 3; ++i) { // multiple of 3
+		if (rayPoly(nearV, farV, polyPointer->getX(polyPointer->getpIndices()[3 * i]), polyPointer->getY(polyPointer->getpIndices()[3 * i]), polyPointer->getZ(polyPointer->getpIndices()[3 * i]),
+			polyPointer->getX(polyPointer->getpIndices()[3 * i + 1]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 1]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 1]),
+			polyPointer->getX(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 2]))) {
+			if (saveCapacity[2] == 0) {
+				int min{ i }, max{ i }; // for going both direction (increasing / decreasing)
+				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
+				saveCapacity[2] = max - min + 1;
+				int* temp = new int[max - min + 1];
+				for (int k = 0; k < max - min + 1; ++k) {
+					temp[k] = k + min;
+					polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
+				}
+				delete[] saveIndex[2];
+				saveIndex[2] = temp;
+
+				polyPointer->drawing();
+				found = TRUE;
+				break;
+			}
+			// if SHIFT is pressed
+			else if ((nFlags & MK_SHIFT) && saveCapacity[2] != 0) {
+				int min{ i }, max{ i };
+				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
+				saveCapacity[2] += max - min + 1;
+				int* temp = new int[saveCapacity[2]];
+				for (int j = 0; j < saveCapacity[2] - max + min - 1; ++j) {
+					temp[j] = saveIndex[2][j];
+				}
+				for (int j = 0; j < max - min + 1; ++j) {
+					temp[j + saveCapacity[2] - max + min - 1] = j + min;
+					polyPointer->setVCZ(polyPointer->getpIndices()[j + min], 0.0f);
+				}
+				delete[] saveIndex[2];
+				saveIndex[2] = temp;
+
+				polyPointer->drawing();
+				found = TRUE;
+				break;
+			}
+			else if (saveCapacity[2] != 0) {				
+				for (int j = 0; j < saveCapacity[2]; ++j) {
+					polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][j]], 0.9f);
+				}
+
+				delete saveIndex[2];
+
+				int min{ i }, max{ i };
+				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 2);
+				saveCapacity[2] = max - min + 1;
+				saveIndex[2] = new int[max - min + 1];
+				for (int k = 0; k < max - min + 1; ++k) {
+					saveIndex[2][k] = k + min;
+					polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
+				}
+
+				polyPointer->drawing();
+				found = TRUE;
+				break;
+			}
+		}
+	}
+
 	// LINE
 	// LINE vertecis always go by pairs. In even numbers. getCapacity() : even number.
+	// saveIndex[1] : index of EBO of Line. indices[ saveIndex[1][x] ] gives index of vertex in vertices array.
+	//                Using the value inside indices, 'Extrude' but be careful to avoid adding same vertex multiple times.
 	GLline* linePointer = reinterpret_cast<GLline*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE));
 	for (int i = 0; i < linePointer->getIndexCapacity() / 2; ++i) {
-		// put inside getX(EBO element) -> make a line and find a point on it 
 		if (rayLine(nearV, farV, linePointer->getX(linePointer->getpIndices()[2*i]), linePointer->getY(linePointer->getpIndices()[2 * i]),
 			linePointer->getZ(linePointer->getpIndices()[2*i]), linePointer->getX(linePointer->getpIndices()[2 * i + 1]), linePointer->getY(linePointer->getpIndices()[2 * i + 1]),
 			linePointer->getZ(linePointer->getpIndices()[2 * i + 1]))) {
@@ -528,8 +594,6 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				for (int j = 0; j < saveCapacity[1] - max + min - 1; ++j) {
 					temp[j] = saveIndex[1][j];
 				}
-				temp[saveCapacity[1] - 2] = 2 * i;
-				temp[saveCapacity[1] - 1] = 2 * i + 1;
 				for (int j = 0; j < max - min + 1; ++j) {
 					temp[j + saveCapacity[1] - max + min - 1] = j + min;
 					linePointer->setVCX(linePointer->getpIndices()[j + min], 1.0f);
@@ -566,19 +630,7 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				break;
 			}
 		}
-	}
-	if (!found && saveCapacity[1] != 0) {
-		for (int i = 0; i < saveCapacity[1]; ++i) {
-			linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
-			linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
-		}
-		linePointer->drawing();
-		
-		saveCapacity[1] = 0;
-		delete[] saveIndex[1];
-		saveIndex[1] = new int[0];
-	}
-	
+	}	
 
 	// POINT
 	for (int i = 0; i < pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getCapacity(); ++i) {
@@ -631,8 +683,29 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 			}
 		}
 	}
+
+	// POINT, LINE, POLY
 	// when SHIFT is not pressed and if not found. Turn off the yellow color.  
-	if (!found && saveCapacity[0] != 0) {
+	if (!found && saveCapacity[2] != 0 && saveCapacity[1] != 0 && saveCapacity[0] != 0) {
+
+		for (int i = 0; i < saveCapacity[2]; ++i) {
+			polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][i]], 0.9f);
+		}
+		polyPointer->drawing();
+
+		saveCapacity[2] = 0;
+		delete[] saveIndex[2];
+		saveIndex[2] = new int[0];
+
+		for (int i = 0; i < saveCapacity[1]; ++i) {
+			linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
+			linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
+		}
+		linePointer->drawing();
+
+		saveCapacity[1] = 0;
+		delete[] saveIndex[1];
+		saveIndex[1] = new int[0];
 		for (int i = 0; i < saveCapacity[0]; ++i) {
 			pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][i], 1.0f);
 		}
@@ -644,8 +717,34 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 		saveIndex[0] = temp;
 	}
 
-
-
 	Invalidate();
 }
 
+BOOL CstructureView::fill() {
+	CstructureDoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+	if (!pDoc)
+		return;
+
+	int min = saveIndex[1][0];
+	int max = saveIndex[1][saveCapacity[1] - 1];
+	// To make sure user selected LINE, and not POLY and POINT
+	if (saveCapacity[1] != 0 && saveCapacity[0] == 0 && saveCapacity[2] == 0) {
+		if (min != max) // if min and max doesn't equal
+			return FALSE;
+		// meaning it's looped poly line
+		else if (min == max) {
+			for (int i = min; i < max + 1; i += 2) {
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY)->setVertex(
+					pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE)->getX(i),
+					pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE)->getY(i),
+					pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE)->getZ(i),
+					0.9f, 0.9f, 0.9f);
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY)->setMode(3);
+				// ?
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY)->pushVertex();
+			}
+
+		}
+	}
+}

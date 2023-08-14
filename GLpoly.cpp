@@ -78,8 +78,16 @@ void GLpoly::setShader(const char* verPath, const char* fragPath) {
 	// just using the same shader.use() in dimAxis().
 }
 
+int GLpoly::getIndexCapacity() const {
+	return indexCapacity;
+}
+
 void GLpoly::setIndiCapacity(int input) {
 	individualCapacity = input;
+}
+
+unsigned int*& GLpoly::getpIndices() {
+	return indices;
 }
 
 void GLpoly::setMode(int type) {
@@ -145,13 +153,13 @@ void GLpoly::RECTANGLESLinepushVertex() {
 				indexTemp[j] = lineIndices[j];
 			}
 			// before incrementing getCapacity() -> so currently 1
-			indexTemp[lineIndexCapacity] = getCapacity() + 2;
-			indexTemp[lineIndexCapacity + 1] = getCapacity() - 1;
-			indexTemp[lineIndexCapacity + 2] = getCapacity() + 1;
-			indexTemp[lineIndexCapacity + 3] = getCapacity();
-			indexTemp[lineIndexCapacity + 4] = getCapacity() + 1;
-			indexTemp[lineIndexCapacity + 5] = getCapacity();
-			indexTemp[lineIndexCapacity + 6] = getCapacity() + 2;
+			indexTemp[lineIndexCapacity] = getCapacity() + 2; // 4
+			indexTemp[lineIndexCapacity + 1] = getCapacity() - 1; // 1
+			indexTemp[lineIndexCapacity + 2] = getCapacity() + 1; // 3
+			indexTemp[lineIndexCapacity + 3] = getCapacity(); // 2
+			indexTemp[lineIndexCapacity + 4] = getCapacity() + 1; // 3
+			indexTemp[lineIndexCapacity + 5] = getCapacity(); // 2
+			indexTemp[lineIndexCapacity + 6] = getCapacity() + 2; // 4 
 
 			delete[] lineIndices;
 			lineIndices = indexTemp;
@@ -185,14 +193,14 @@ void GLpoly::RECTANGLESpushVertex() {
 		if (individualCapacity % 6 == 1) {
 			unsigned int* indexTemp = new unsigned int[indexCapacity + 5];
 			for (int j = 0; j < indexCapacity; ++j) {
-				indexTemp[j] = indices[j];
+				indexTemp[j] = indices[j]; 
 			}
 			// getCapcity() = at the start 1
-			indexTemp[indexCapacity] = getCapacity() + 1;
-			indexTemp[indexCapacity + 1] = getCapacity() + 2;
-			indexTemp[indexCapacity + 2] = getCapacity();
-			indexTemp[indexCapacity + 3] = getCapacity() + 1;
-			indexTemp[indexCapacity + 4] = getCapacity() + 2;
+			indexTemp[indexCapacity] = getCapacity() + 1;  // 2
+			indexTemp[indexCapacity + 1] = getCapacity() + 2; // 3
+			indexTemp[indexCapacity + 2] = getCapacity(); // 1
+			indexTemp[indexCapacity + 3] = getCapacity() + 1; // 2
+			indexTemp[indexCapacity + 4] = getCapacity() + 2; // 3
 
 			delete[] indices;
 			indices = indexTemp;
@@ -205,7 +213,7 @@ void GLpoly::RECTANGLESpushVertex() {
 			for (int j = 0; j < indexCapacity; ++j) {
 				indexTemp[j] = indices[j];
 			}
-			indexTemp[indexCapacity] = getCapacity();
+			indexTemp[indexCapacity] = getCapacity(); // 0
 
 			delete[] indices;
 			indices = indexTemp;
@@ -261,7 +269,7 @@ void GLpoly::CIRCLESpushVertex() {
 			indexTemp[indexCapacity + 3 * j + 2] = first + 1;
 			break;
 		}
-		indexTemp[indexCapacity + 3*j + 2] = capacity + 2;
+		indexTemp[indexCapacity + 3 * j + 2] = capacity + 2;
 		++capacity;
 	}
 	delete[] indices;
@@ -343,25 +351,29 @@ void GLpoly::pushVertex() {
 			// for (theta = 0; theta < 2*radius*3; ++theta)
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
 				this->setVertex(getX(center) + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
-					getY(center) + radius * glm::sin(2* 3.14159265358979323846264338327950288 / (2*radius * 3) * theta), getZ(center));
+					getY(center) + radius * glm::sin(2* 3.14159265358979323846264338327950288 / (2*radius * 3) * theta), getZ(center), 0.9f, 0.9f, 0.9f);
 				GLprimitive::pushVertex();
 			}
 		}
 		else if (mRadio == 1) { // y-axis in dialog but in real x-axis
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
 				this->setVertex(getX(center), getY(center) + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta)
-					, getZ(center) + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta));
+					, getZ(center) + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta), 0.9f, 0.9f, 0.9f);
 				GLprimitive::pushVertex();
 			}
 		}
 		else if (mRadio == 2) { // z-axis in dialog but in real y-axis
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
-				this->setVertex(getX(center)+ radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
-					getY(center), getZ(center) + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta));
+				this->setVertex(getX(center) + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
+					getY(center), getZ(center) + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta), 0.9f, 0.9f, 0.9f);
 				GLprimitive::pushVertex();
 			}
+			break;
 		}
+	case FILL: {
+		GLprimitive::pushVertex();
 		break;
+	}
 	}
 	}
 }
@@ -520,10 +532,6 @@ void GLpoly::drawing() {
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	CString str;
-	str.Format(_T("%d, %d, %d"), indexCapacity, lineIndexCapacity, getCapacity());
-	MessageBox(NULL, str, NULL, MB_OK);
 }
 
 // glPolygonMode 를 effective하게 하는 방법도 있으면 좋겠다.

@@ -14,9 +14,13 @@ public:
 
 	void setShader(const char*, const char*);
 
+	int getIndexCapacity() const;
 	void setIndiCapacity(int);
+	
+	unsigned int*& getpIndices();
+	
 
-	enum Mode {TRIANGLES, STRIP, FAN}; 
+	enum Mode {TRIANGLES, STRIP, FAN, FILL}; 
 	// TRIANGLES - for triangles
 	// STRIP - for rectangles
 	// FAN - for circles, etc.

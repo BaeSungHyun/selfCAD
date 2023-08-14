@@ -72,7 +72,13 @@ protected:
 	virtual void rayCoordinates(float, float, glm::vec4&, glm::vec4&);
 	virtual BOOL rayPoint(const glm::vec4&, const glm::vec4&, const float, const float, const float);
 	virtual BOOL rayLine(const glm::vec4&, const glm::vec4&, const float, const float, const float, const float, const float, const float);
+	virtual BOOL rayPoly(const glm::vec4&, const glm::vec4&, const float, const float, const float, 
+		const float, const float, const float, const float, constp float, const float);
 	virtual void LINEIndexIdentifier(const unsigned int*, int&, int&, const int);
+	virtual void POLYIndexIdentifier(const unsigned int*, int&, int&, const int);
+
+	// Fill in Enclosed Poly Lines
+	virtual BOOL fill();
 
 private:
 	float cx, cy;
