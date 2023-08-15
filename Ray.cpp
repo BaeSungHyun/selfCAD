@@ -114,7 +114,7 @@ void CstructureView::POLYIndexIdentifier(const unsigned int* saveIndex, int& min
 		--min;
 	}
 	min *= 3;
-	while (max < POLYIndexCapacity && (saveIndex[3 * max] == saveIndex[3 * max + 3] || saveIndex[3 * max + 1] == saveIndex[3 * max + 4] || saveIndex[3 * max + 2] == saveIndex[3 * max + 5]
+	while (max < POLYIndexCapacity-1 && (saveIndex[3 * max] == saveIndex[3 * max + 3] || saveIndex[3 * max + 1] == saveIndex[3 * max + 4] || saveIndex[3 * max + 2] == saveIndex[3 * max + 5]
 		|| saveIndex[3 * max] == saveIndex[3 * max + 4] || saveIndex[3 * max] == saveIndex[3 * max + 5] || saveIndex[3 * max + 1] == saveIndex[3 * max + 3] 
 		|| saveIndex[3 * max + 1] == saveIndex[3 * max + 5] || saveIndex[3 * max + 2] == saveIndex[3 * max + 3] || saveIndex[3 * max + 2] == saveIndex[3 * max + 4])) {
 		++max;

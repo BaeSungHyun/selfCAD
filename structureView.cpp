@@ -37,6 +37,8 @@ BEGIN_MESSAGE_MAP(CstructureView, CView)
 	ON_WM_RBUTTONUP()
 	ON_WM_MOUSEWHEEL()
 	ON_WM_LBUTTONDOWN()
+	ON_COMMAND(ID_FILL_TOOLBAR, &CstructureView::OnFillToolbar)
+	ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 // CstructureView construction/destruction
@@ -686,7 +688,7 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 
 	// POINT, LINE, POLY
 	// when SHIFT is not pressed and if not found. Turn off the yellow color.  
-	if (!found && saveCapacity[2] != 0 && saveCapacity[1] != 0 && saveCapacity[0] != 0) {
+	if (!found && (saveCapacity[2] != 0 || saveCapacity[1] != 0 || saveCapacity[0] != 0)) {
 
 		for (int i = 0; i < saveCapacity[2]; ++i) {
 			polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][i]], 0.9f);
@@ -706,6 +708,7 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 		saveCapacity[1] = 0;
 		delete[] saveIndex[1];
 		saveIndex[1] = new int[0];
+
 		for (int i = 0; i < saveCapacity[0]; ++i) {
 			pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][i], 1.0f);
 		}
@@ -724,27 +727,99 @@ BOOL CstructureView::fill() {
 	CstructureDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
-		return;
+		return FALSE;
 
+	GLpoly* pointerPoly = reinterpret_cast<GLpoly*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY));
+	GLline* pointerLine = reinterpret_cast<GLline*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE));
+
+	// Both line indices
 	int min = saveIndex[1][0];
 	int max = saveIndex[1][saveCapacity[1] - 1];
+
 	// To make sure user selected LINE, and not POLY and POINT
 	if (saveCapacity[1] != 0 && saveCapacity[0] == 0 && saveCapacity[2] == 0) {
-		if (min != max) // if min and max doesn't equal
+		if (pointerLine->getpIndices()[min] != pointerLine->getpIndices()[max]) // if min and max doesn't equal
 			return FALSE;
 		// meaning it's looped poly line
-		else if (min == max) {
-			for (int i = min; i < max + 1; i += 2) {
+		else if (pointerLine->getpIndices()[min] == pointerLine->getpIndices()[max]) {
+			// EBO. k (lines) in LOOP LINE EBO -> 3 (vertices) * (k-2) (lines / vertices)
+			// POLY
+			int increment{ 3 * ((max - min + 1) / 2 - 2)  }; // k (lines) : (max - min + 1) / 2
+
+			unsigned int* tempIndices = new unsigned int[pointerPoly->getIndexCapacity() + increment];
+			for (int i = 0; i < pointerPoly->getIndexCapacity(); ++i) {
+				tempIndices[i] = pointerPoly->getpIndices()[i];
+			}
+			int first{ pointerPoly->getCapacity() }; // before pushVertex() so before incrementing capacity
+			for (int i = 0; i < increment / 3; ++i) {
+				tempIndices[pointerPoly->getIndexCapacity() + 3 * i] = first;
+				tempIndices[pointerPoly->getIndexCapacity() + 3 * i + 1] = pointerPoly->getCapacity() + i + 1;
+				tempIndices[pointerPoly->getIndexCapacity() + 3 * i + 2] = pointerPoly->getCapacity() + i + 2;
+			}
+			delete[] pointerPoly->getpIndices();
+			pointerPoly->getpIndices() = tempIndices;
+			pointerPoly->addPolyIndexCapacity(increment);
+
+			// LINE : just add as much as the enclosed LOOP LINE 
+			increment = max - min + 1; // k (lines) : (max - min + 1) / 2 , 2 vertices per line
+			
+			unsigned int* tempLineIndices = new unsigned int[pointerPoly->getLineIndexCapacity() + increment];
+			// Move existing vertice
+			for (int i = 0; i < pointerPoly->getLineIndexCapacity(); ++i) {
+				tempLineIndices[i] = pointerPoly->getpLineIndices()[i];
+			}
+			first = pointerPoly->getCapacity(); // before pushVertex() so before incrementing capacity
+			for (int i = 0; i < increment / 2; ++i) {
+				tempLineIndices[pointerPoly->getLineIndexCapacity() + 2 * i] = first + i;
+				if (i == increment / 2 - 1) { // to make a enclosed loop around filled POLY
+					tempLineIndices[pointerPoly->getLineIndexCapacity() + 2 * i + 1] = first;
+					break;
+				}
+				tempLineIndices[pointerPoly->getLineIndexCapacity() + 2 * i + 1] = first + i + 1;
+			}
+			delete[] pointerPoly->getpLineIndices();
+			pointerPoly->getpLineIndices() = tempLineIndices;
+			pointerPoly->addLineIndexCapacity(increment);
+			
+
+			// VBO
+			for (int i = min; i < max + 1; i += 2) { // LINE LOOP : i += 2
 				pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY)->setVertex(
-					pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE)->getX(i),
-					pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE)->getY(i),
-					pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE)->getZ(i),
+					pointerLine->getX(pointerLine->getpIndices()[i]),
+					pointerLine->getY(pointerLine->getpIndices()[i]),
+					pointerLine->getZ(pointerLine->getpIndices()[i]),
 					0.9f, 0.9f, 0.9f);
-				pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY)->setMode(3);
-				// ?
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY)->setMode(3); // FILL
 				pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY)->pushVertex();
 			}
-
 		}
+	}
+	else {
+		return FALSE;
+	}
+
+	pointerPoly->drawing();
+	pDoc->UpdateAllViews(NULL);
+	pDoc->pLayer->bPoly = TRUE;
+
+	return TRUE;
+}
+
+void CstructureView::OnFillToolbar() {
+	if (FALSE == fill()) {
+		MessageBox(_T("Please choose enclosed loop line"));
+	}
+}
+
+void CstructureView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+	CView::OnKeyDown(nChar, nRepCnt, nFlags);
+
+	switch (nChar) {
+	case VK_DELETE: {
+		// Delete selected vertices and polyEBO, lineEBO.
+		break;
+	}
 	}
 }

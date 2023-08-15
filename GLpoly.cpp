@@ -82,12 +82,38 @@ int GLpoly::getIndexCapacity() const {
 	return indexCapacity;
 }
 
+int GLpoly::getLineIndexCapacity() const {
+	return lineIndexCapacity;
+}
+
+int GLpoly::getIndiCapacity() const {
+	return individualCapacity;
+}
+
 void GLpoly::setIndiCapacity(int input) {
 	individualCapacity = input;
 }
 
+void GLpoly::addPolyIndexCapacity(int addCapacity) {
+	if (addCapacity == 0)
+		indexCapacity = 0;
+	else
+		indexCapacity += addCapacity;
+}
+
+void GLpoly::addLineIndexCapacity(int addCapacity) {
+	if (addCapacity == 0)
+		lineIndexCapacity = 0;
+	else
+		lineIndexCapacity += addCapacity;
+}
+
 unsigned int*& GLpoly::getpIndices() {
 	return indices;
+}
+
+unsigned int*& GLpoly::getpLineIndices() {
+	return lineIndices;
 }
 
 void GLpoly::setMode(int type) {
@@ -214,7 +240,7 @@ void GLpoly::RECTANGLESpushVertex() {
 				indexTemp[j] = indices[j];
 			}
 			indexTemp[indexCapacity] = getCapacity(); // 0
-
+			
 			delete[] indices;
 			indices = indexTemp;
 
@@ -370,10 +396,10 @@ void GLpoly::pushVertex() {
 			}
 			break;
 		}
+	}
 	case FILL: {
 		GLprimitive::pushVertex();
 		break;
-	}
 	}
 	}
 }

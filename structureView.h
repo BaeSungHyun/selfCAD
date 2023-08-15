@@ -73,7 +73,7 @@ protected:
 	virtual BOOL rayPoint(const glm::vec4&, const glm::vec4&, const float, const float, const float);
 	virtual BOOL rayLine(const glm::vec4&, const glm::vec4&, const float, const float, const float, const float, const float, const float);
 	virtual BOOL rayPoly(const glm::vec4&, const glm::vec4&, const float, const float, const float, 
-		const float, const float, const float, const float, constp float, const float);
+		const float, const float, const float, const float, const float, const float);
 	virtual void LINEIndexIdentifier(const unsigned int*, int&, int&, const int);
 	virtual void POLYIndexIdentifier(const unsigned int*, int&, int&, const int);
 
@@ -131,6 +131,7 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnFillToolbar();
 };
 
 #ifndef _DEBUG  // debug version in structureView.cpp

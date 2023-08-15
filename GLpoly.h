@@ -14,11 +14,17 @@ public:
 
 	void setShader(const char*, const char*);
 
-	int getIndexCapacity() const;
-	void setIndiCapacity(int);
+	int getIndexCapacity() const; // poly index
+	int getLineIndexCapacity() const; // line index
+
+	int getIndiCapacity() const; // poly individual 
+	void setIndiCapacity(int); // poly individual
+
+	void addPolyIndexCapacity(int); // poly index
+	void addLineIndexCapacity(int);  // line index
 	
 	unsigned int*& getpIndices();
-	
+	unsigned int*& getpLineIndices();
 
 	enum Mode {TRIANGLES, STRIP, FAN, FILL}; 
 	// TRIANGLES - for triangles

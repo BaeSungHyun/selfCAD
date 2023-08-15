@@ -27,9 +27,11 @@ public:
 	int mode{0};
 	CstructureDoc* pDoc{ nullptr };
 	int mRadio;
+
 	float rectX;
 	float rectY;
 	float rectZ;
+
 	virtual void OnOK();
 	virtual void OnCancel();
 	virtual void PostNcDestroy();

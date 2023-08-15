@@ -47,11 +47,28 @@ END_MESSAGE_MAP()
 void Rectangles::OnOK()
 {
 	// TODO: Add your specialized code here and/or call the base class
+	float tempRectZ{ rectY };
+
 	UpdateData(TRUE);
 
+	GLpoly* pointerPoly = reinterpret_cast<GLpoly*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY));
+
+	// EXCEPTIONS
 	if (mRadio == -1) {
 		MessageBox(_T("Select direction of rectangle"));
 		return;
+	}
+	if (mRadio == 0 && pointerPoly->getIndiCapacity() == 1) { // vertical
+		if (tempRectZ == rectY) {
+			MessageBox(_T("Z coordinates must differ for vertical rectangle"));
+			return;
+		}
+	}
+	else if (mRadio == 1 && pointerPoly->getIndiCapacity() == 1) { // horizontal
+		if (tempRectZ != rectY) {
+			MessageBox(_T("Z coordinates must be same for horizontal rectangle"));
+			return;
+		}
 	}
 
 	GLprimitive* pPoly{ nullptr };
@@ -76,7 +93,7 @@ void Rectangles::OnCancel()
 	pRect->setMode(mode);
 	pRect->setRadio(mRadio);
 	pRect->popVertex();
-	// popping part in case there is not enough vertexes 
+	// popping part in case there is not enough vertices
 
 	pRect->drawing();
 	pDoc->UpdateAllViews(NULL);
