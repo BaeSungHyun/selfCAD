@@ -37,6 +37,11 @@ public:
 	virtual void setY(float);
 	virtual void setZ(float);
 
+	// for Move and Copy
+	virtual void addVX(unsigned int, float);
+	virtual void addVY(unsigned int, float);
+	virtual void addVZ(unsigned int, float);
+
 	virtual float*& getVertex();
 	virtual float*& getpVertices();
 

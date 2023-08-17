@@ -207,6 +207,7 @@
     <ClInclude Include="Layer.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="MoveCopy.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="Rectangle.h" />
@@ -234,6 +235,7 @@
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="Line.cpp" />
     <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="MoveCopy.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

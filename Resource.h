@@ -13,6 +13,7 @@
 #define IDD_RECT_DIALOG                 321
 #define IDD_CIRCLE_DIALOG               323
 #define IDD_EXTRUDE_DIALOG              325
+#define IDD_MOVE_DIALOG                 327
 #define IDC_POINT_ERASE_BUTTON          1000
 #define IDC_POINT_X                     1001
 #define IDC_POINT_Y                     1002
@@ -42,6 +43,15 @@
 #define IDC_EXTRUDE_Y                   1027
 #define IDC_EXTRUDE_Z                   1028
 #define IDC_EXTRUDE_SPACING             1029
+#define IDC_MOVE_ERASE                  1030
+#define IDC_MOVE_ORIGINALX              1031
+#define IDC_MOVE_ORIGINALY              1032
+#define IDC_MOVE_ORIGINALZ              1033
+#define IDC_MOVE_FINALX                 1034
+#define IDC_MOVE_FINALY                 1035
+#define IDC_MOVE_FINALZ                 1036
+#define IDC_RADIO_COPY                  1037
+#define IDC_RADIO_MOVE                  1038
 #define ID_LAYER_LAYER1                 32772
 #define ID_POINT_TOOLBAR                32773
 #define ID_LINE_TOOLBAR                 32774
@@ -56,14 +66,15 @@
 #define ID_POLY_CIRCLE                  32784
 #define ID_FILL_TOOLBAR                 32785
 #define ID_EXTRUDE_TOOLBAR              32786
+#define ID_MOVE_TOOLBAR                 32787
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        327
-#define _APS_NEXT_COMMAND_VALUE         32787
-#define _APS_NEXT_CONTROL_VALUE         1030
+#define _APS_NEXT_RESOURCE_VALUE        329
+#define _APS_NEXT_COMMAND_VALUE         32788
+#define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

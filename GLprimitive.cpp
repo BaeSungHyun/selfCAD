@@ -121,6 +121,18 @@ void GLprimitive::setY(float newY) {
 void GLprimitive::setZ(float newZ) {
 	vertex[2] = newZ;
 }
+// for move and copy
+void GLprimitive::addVX(unsigned int index, float newX) {
+	vertices[offset * index + 0] += newX;
+}
+
+void GLprimitive::addVY(unsigned int index, float newY) {
+	vertices[offset * index + 1] += newY;
+}
+
+void GLprimitive::addVZ(unsigned int index, float newZ) {
+	vertices[offset * index + 2] += newZ;
+}
 
 float*& GLprimitive::getVertex() {
 	return vertex;

@@ -33,6 +33,7 @@ BEGIN_MESSAGE_MAP(CstructureDoc, CDocument)
 	ON_COMMAND(ID_POLY_RECTANGLES, &CstructureDoc::OnPolyRecToolbar)
 	ON_COMMAND(ID_POLY_CIRCLE, &CstructureDoc::OnPolyCircleToolbar)
 	ON_COMMAND(ID_EXTRUDE_TOOLBAR, &CstructureDoc::OnExtrudeToolbar)
+	ON_COMMAND(ID_MOVE_TOOLBAR, &CstructureDoc::OnMoveCopyToolbar)
 END_MESSAGE_MAP()
 
 
@@ -47,6 +48,7 @@ CstructureDoc::CstructureDoc() noexcept
 	pRectdlg = NULL;
 	pCircledlg = NULL;
 	pExtrudedlg = NULL; 
+	pMoveCopydlg = NULL;
 	layerCapacity = 0;
 	pLayer = new Layer[ layerCapacity ];
 }
@@ -316,5 +318,29 @@ void CstructureDoc::OnExtrudeToolbar() {
 
 		pExtrudedlg->Create(IDD_EXTRUDE_DIALOG);
 		pExtrudedlg->ShowWindow(SW_SHOW);
+	}
+}
+
+void CstructureDoc::OnMoveCopyToolbar() {
+	if (pMoveCopydlg != NULL) {
+		pMoveCopydlg->SetFocus();
+	}
+	else {
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pMoveCopydlg = new MoveCopy(pView);
+		pMoveCopydlg->pView = pView;
+		pMoveCopydlg->pDoc = this;
+
+		pMoveCopydlg->originalX = 0;
+		pMoveCopydlg->originalY = 0;
+		pMoveCopydlg->originalZ = 0;
+		pMoveCopydlg->finalX = 0;
+		pMoveCopydlg->finalY = 0;
+		pMoveCopydlg->finalZ = 0;
+		pMoveCopydlg->mRadio = -1;
+
+		pMoveCopydlg->Create(IDD_MOVE_DIALOG);
+		pMoveCopydlg->ShowWindow(SW_SHOW);
 	}
 }

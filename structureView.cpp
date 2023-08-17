@@ -47,11 +47,13 @@ CstructureView::CstructureView() noexcept
 	: m_hRC(0), m_pDC(0)
 {
 	// TODO: add construction code here
-	saveIndex = new unsigned int* [4];
-	saveIndex[0] = new  unsigned int[saveCapacity[0]]; // POINT
+	saveIndex = new unsigned int* [6];
+	saveIndex[0] = new unsigned int[saveCapacity[0]]; // POINT
 	saveIndex[1] = new unsigned int[saveCapacity[1]]; // LINE - lineEBO
 	saveIndex[2] = new unsigned int[saveCapacity[2]]; // POLY - polyEBO
 	saveIndex[3] = new unsigned int[saveCapacity[3]]; // POLY - lineEBO
+	saveIndex[4] = new unsigned int[saveCapacity[4]]; // LINE - VBO
+	saveIndex[5] = new unsigned int[saveCapacity[5]]; // POLY - VBO
 }
 
 CstructureView::~CstructureView()
@@ -506,7 +508,7 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 			polyPointer->getX(polyPointer->getpIndices()[3 * i + 1]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 1]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 1]),
 			polyPointer->getX(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 2]))) {
 			// if SHIFT is pressed
-			if ((nFlags & MK_SHIFT) && saveCapacity[2] != 0) {
+			if ((nFlags & MK_SHIFT) && (saveCapacity[2] != 0 || saveCapacity[1] != 0 || saveCapacity[0] != 0)) {
 				unsigned int min{ i }, max{ i };
 				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
 				saveCapacity[2] += max - min + 1;
@@ -520,6 +522,8 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				}
 				delete[] saveIndex[2];
 				saveIndex[2] = temp;
+
+				pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
 
 				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
 
@@ -549,6 +553,10 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 
 				delete[] saveIndex[2];
 				delete[] saveIndex[3];
+				delete[] saveIndex[5];
+				saveCapacity[2] = 0;
+				saveCapacity[3] = 0;
+				saveCapacity[5] = 0;
 
 				// LINE
 				for (unsigned int j = 0; j < saveCapacity[1]; ++j) {
@@ -557,8 +565,11 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				}
 
 				delete[] saveIndex[1];
+				delete[] saveIndex[4];
 				saveCapacity[1] = 0;
+				saveCapacity[4] = 0;
 				saveIndex[1] = new unsigned int[0];
+				saveIndex[4] = new unsigned int[0];
 
 				// POINT
 				for (unsigned int j = 0; j < saveCapacity[0]; ++j) {
@@ -578,6 +589,9 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 					saveIndex[2][k] = k + min;
 					polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
 				}
+
+				saveIndex[5] = new unsigned int[0];
+				pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
 
 				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
 
@@ -607,6 +621,8 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				}
 				delete[] saveIndex[2];
 				saveIndex[2] = temp;
+				
+				pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
 
 				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
 
@@ -635,7 +651,7 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 			linePointer->getZ(linePointer->getpIndices()[2*i]), linePointer->getX(linePointer->getpIndices()[2 * i + 1]), linePointer->getY(linePointer->getpIndices()[2 * i + 1]),
 			linePointer->getZ(linePointer->getpIndices()[2 * i + 1]))) {
 			// if SHIFT is pressed, select multiple vertices of LINE
-			if ((nFlags & MK_SHIFT) && saveCapacity[1] != 0) {
+			if ((nFlags & MK_SHIFT) && (saveCapacity[2] != 0 || saveCapacity[1] != 0 || saveCapacity[0] != 0)) {
 				unsigned int min{ i }, max{ i };
 				LINEIndexIdentifier(linePointer->getpIndices(), min, max, linePointer->getIndexCapacity() / 2);
 				saveCapacity[1] += max - min + 1;
@@ -651,6 +667,9 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 
 				delete[] saveIndex[1];
 				saveIndex[1] = temp;
+
+				// remember VBO
+				pushLINEVBOIndex(linePointer->getpIndices(), min, max);
 
 				linePointer->drawing();
 				found = TRUE;
@@ -669,6 +688,10 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				saveCapacity[2] = 0;
 				saveIndex[2] = new unsigned int[0];
 
+				delete[] saveIndex[5];
+				saveCapacity[5] = 0;
+				saveIndex[5] = new unsigned int[0];
+
 				// LINE
 				for (unsigned int j = 0; j < saveCapacity[1]; ++j) {
 					linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
@@ -676,7 +699,9 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				}
 
 				delete[] saveIndex[1];
+				delete[] saveIndex[4];
 				saveCapacity[1] = 0;
+				saveCapacity[4] = 0;
 
 				// POINT
 				for (unsigned int j = 0; j < saveCapacity[0]; ++j) {
@@ -698,6 +723,9 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 					linePointer->setVCY(linePointer->getpIndices()[k + min], 1.0f);
 				}
 
+				saveIndex[4] = new unsigned int[0]; // PLEASE MAKE EMPTY HEAP ARRAY
+				pushLINEVBOIndex(linePointer->getpIndices(), min, max);
+
 				polyPointer->drawing();
 				linePointer->drawing();
 				pointPointer->drawing();
@@ -718,6 +746,8 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				delete[] saveIndex[1];
 				saveIndex[1] = tempOrder;
 
+				pushLINEVBOIndex(linePointer->getpIndices(), min, max);
+
 				linePointer->drawing();
 				found = TRUE;
 				break;
@@ -730,7 +760,7 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 		if (rayPoint(nearV, farV, pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getX(i),
 			pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getY(i), pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getZ(i))) {
 			// if SHIFT is pressed, select multiple POINTS
-			if ((nFlags & MK_SHIFT) && saveCapacity[0] != 0) {
+			if ((nFlags & MK_SHIFT) && (saveCapacity[2] != 0 || saveCapacity[1] != 0 || saveCapacity[0] != 0)) {
 				// add one point to saveIndex[0] (POINT)
 				unsigned int* temp = new unsigned int[++saveCapacity[0]];
 				for (unsigned int j = 0; j < saveCapacity[0] - 1; ++j) {
@@ -760,6 +790,10 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				saveCapacity[3] = 0;
 				saveIndex[3] = new unsigned int[0];
 
+				delete[] saveIndex[5];
+				saveCapacity[5] = 0;
+				saveIndex[5] = new unsigned int[0];
+
 				// LINE
 				for (unsigned int j = 0; j < saveCapacity[1]; ++j) {
 					linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
@@ -767,8 +801,11 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				}
 
 				delete[] saveIndex[1];
+				delete[] saveIndex[4];
 				saveCapacity[1] = 0;
+				saveCapacity[4] = 0;
 				saveIndex[1] = new unsigned int[0];
+				saveIndex[4] = new unsigned int[0];
 
 				// POINT
 				for (unsigned int j = 0; j < saveCapacity[0]; ++j) {
@@ -819,8 +856,14 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 		polyPointer->drawing();
 
 		saveCapacity[2] = 0;
+		saveCapacity[3] = 0;
+		saveCapacity[5] = 0;
+		delete[] saveIndex[3];
 		delete[] saveIndex[2];
+		delete[] saveIndex[5];
 		saveIndex[2] = new unsigned int[0];
+		saveIndex[3] = new unsigned int[0];
+		saveIndex[5] = new unsigned int[0];
 
 		for (unsigned int i = 0; i < saveCapacity[1]; ++i) {
 			linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
@@ -829,8 +872,11 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 		linePointer->drawing();
 
 		saveCapacity[1] = 0;
+		saveCapacity[4] = 0;
 		delete[] saveIndex[1];
+		delete[] saveIndex[4];
 		saveIndex[1] = new unsigned int[0];
+		saveIndex[4] = new unsigned int[0];
 
 		for (unsigned int i = 0; i < saveCapacity[0]; ++i) {
 			pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][i], 1.0f);
@@ -839,7 +885,7 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 
 		saveCapacity[0] = 0;
 		unsigned int* temp = new unsigned int[0];
-		delete saveIndex[0];
+		delete[] saveIndex[0];
 		saveIndex[0] = temp;
 	}
 
@@ -968,8 +1014,13 @@ void CstructureView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			linePointer->rangeDelete(saveIndex[1][0], saveIndex[1][saveCapacity[1] - 1]);
 
 			delete[] saveIndex[1];
+			delete[] saveIndex[4];
+
 			saveCapacity[1] = 0;
+			saveCapacity[4] = 0;
+
 			saveIndex[1] = new unsigned int[0];
+			saveIndex[4] = new unsigned int[0];
 			
 			linePointer->drawing();
 		}
@@ -980,12 +1031,15 @@ void CstructureView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 			delete[] saveIndex[2];
 			delete[] saveIndex[3];
+			delete[] saveIndex[5];
 
 			saveCapacity[2] = 0;
 			saveCapacity[3] = 0;
+			saveCapacity[5] = 0;
 
 			saveIndex[2] = new unsigned int[0];
 			saveIndex[3] = new unsigned int[0];
+			saveIndex[5] = new unsigned int[0];
 
 			polyPointer->drawing();
 		}

@@ -11,6 +11,7 @@
 #include "Rectangle.h"
 #include "Circle.h"
 #include "Extrude.h"
+#include "MoveCopy.h"
 
 
 class CstructureDoc : public CDocument
@@ -34,6 +35,7 @@ public:
 	Rectangles* pRectdlg;
 	Circle* pCircledlg;
 	Extrude* pExtrudedlg;
+	MoveCopy* pMoveCopydlg;
 
 // Operations
 public:
@@ -69,6 +71,7 @@ public:
 	afx_msg void OnPolyRecToolbar();
 	afx_msg void OnPolyCircleToolbar();
 	afx_msg void OnExtrudeToolbar();
+	afx_msg void OnMoveCopyToolbar();
 
 #ifdef SHARED_HANDLERS
 	// Helper function that sets search content for a Search Handler

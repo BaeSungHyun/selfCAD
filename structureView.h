@@ -27,8 +27,10 @@ public:
 	glm::mat4 projection{glm::mat4(1.0f)};
 
 	// Save index for RAY SELECTION
-	unsigned int** saveIndex; // array of integer pointers (POINT , LINEINDEX , LINE)
-	unsigned int saveCapacity[4]{ 0, 0, 0, 0 }; // POINT , LINEINDEX, LINE
+	// array of integer pointers (POINTINDEX , LINEEBOINDEX , POLYEBOINDEX, 
+	//                            POLYLINEEBOINDEX, LINEVBOINDEX, POLYVBOINDEX)
+	unsigned int** saveIndex; 
+	unsigned int saveCapacity[6]{ 0, 0, 0, 0, 0, 0 }; // POINTINDEX , LINEEBOINDEX, POLYEBOINDEX, POLYLINEEVOINDEX, LINEVBOINDEX, POLYVBOINDEX, 
 
 	// SEARCHING SELECTING
 	virtual void rayCoordinates(float, float, glm::vec4&, glm::vec4&);
@@ -39,6 +41,8 @@ public:
 	virtual void LINEIndexIdentifier(const unsigned int*, unsigned int&, unsigned int&, const int);
 	virtual void POLYIndexIdentifier(const unsigned int*, unsigned int&, unsigned int&, const int);
 	virtual void POLYLineIndexIdentifier(unsigned int*, unsigned int*, unsigned int&, unsigned int&); // use saveIndex[2] and put it in saveIndex[3]
+	virtual void pushLINEVBOIndex(unsigned int*, unsigned int, unsigned int);
+	virtual void pushPOLYVBOIndex(unsigned int*, unsigned int, unsigned int);
 
 protected:
 	CToolBar m_wndToolbar;

@@ -81,6 +81,9 @@
     <ClInclude Include="Extrude.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MoveCopy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="structure.cpp">
@@ -135,6 +138,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Extrude.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveCopy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

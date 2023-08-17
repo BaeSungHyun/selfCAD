@@ -92,6 +92,36 @@ BOOL CstructureView::rayPoly(const glm::vec4& nearest, const glm::vec4& farthest
 	}
 }
 
+// return actual range of min, max in VBO (line)
+void CstructureView::pushLINEVBOIndex(unsigned int* lineEBO, unsigned int min, unsigned int max) {
+	unsigned int minVBO{ lineEBO[min] }, maxVBO{ lineEBO[max] };
+
+	for (int i = min + 1; i < min + 3; ++i) {
+		if (minVBO > lineEBO[i]) {
+			minVBO = lineEBO[i];
+		}
+	}
+	for (int i = max - 1; i > max - 3; --i) {
+		if (maxVBO < lineEBO[i]) {
+			maxVBO = lineEBO[i];
+		}
+	}
+
+	// for existing saveIndex[4] elements
+	unsigned int* temp = new unsigned int[saveCapacity[4] + maxVBO - minVBO + 1];
+	for (int i = 0; i < saveCapacity[4]; ++i) {
+		temp[i] = saveIndex[4][i];
+	}
+
+	for (int i = minVBO; i < maxVBO + 1; ++i)
+		temp[i - minVBO + saveCapacity[4]] = i;
+
+	delete[] saveIndex[4];
+	saveIndex[4] = temp;
+
+	saveCapacity[4] += maxVBO - minVBO + 1;
+}
+
 // return actual range of min, max in 'indices' (lineEBO)
 void CstructureView::LINEIndexIdentifier(const unsigned int* saveIndex, unsigned int& min, unsigned int& max, const int LINEIndexCapacity) {
 	// compare current elment's first with previous element's second
@@ -104,6 +134,41 @@ void CstructureView::LINEIndexIdentifier(const unsigned int* saveIndex, unsigned
 		++max;
 	}
 	max = 2 * max + 1;
+}
+
+// return actual range of min, max in VBO (poly)
+void CstructureView::pushPOLYVBOIndex(unsigned int* polyEBO, unsigned int min, unsigned int max) {
+	unsigned int minVBO{ polyEBO[min] }, maxVBO{ polyEBO[max] };
+
+	CString str;
+	str.Format(_T("%d, %d, %d, %d"), min, max, minVBO, maxVBO);
+	MessageBox(str);
+
+	for (int i = min + 1; i < min + 3; ++i) {
+		if (minVBO > polyEBO[i]) {
+			minVBO = polyEBO[i];
+		}
+	}
+	for (int i = max - 1; i > max - 3; --i) {
+		if (maxVBO < polyEBO[i]) {
+			maxVBO = polyEBO[i];
+		}
+	}
+
+	// for existing saveIndex[5] elements
+	unsigned int* temp = new unsigned int[saveCapacity[5] + maxVBO - minVBO + 1];
+	for (int i = 0; i < saveCapacity[5]; ++i) {
+		temp[i] = saveIndex[5][i];
+	}
+
+	for (int i = minVBO; i < maxVBO + 1; ++i) {
+		temp[i - minVBO + saveCapacity[5]] = i;
+	}
+
+	delete[] saveIndex[5];
+	saveIndex[5] = temp;
+
+	saveCapacity[5] += maxVBO - minVBO + 1;
 }
 
 // return actual range of min, max in 'indices' (polyEBO) 
