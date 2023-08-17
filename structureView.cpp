@@ -47,10 +47,11 @@ CstructureView::CstructureView() noexcept
 	: m_hRC(0), m_pDC(0)
 {
 	// TODO: add construction code here
-	saveIndex = new int* [3];
-	saveIndex[0] = new  int[saveCapacity[0]];
-	saveIndex[1] = new int[saveCapacity[1]];
-	saveIndex[2] = new int[saveCapacity[2]];		
+	saveIndex = new unsigned int* [4];
+	saveIndex[0] = new  unsigned int[saveCapacity[0]]; // POINT
+	saveIndex[1] = new unsigned int[saveCapacity[1]]; // LINE - lineEBO
+	saveIndex[2] = new unsigned int[saveCapacity[2]]; // POLY - polyEBO
+	saveIndex[3] = new unsigned int[saveCapacity[3]]; // POLY - lineEBO
 }
 
 CstructureView::~CstructureView()
@@ -496,62 +497,127 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 	rayCoordinates(mouseX, mouseY, nearV, farV);
 
 	// POLY
+	GLline* linePointer = reinterpret_cast<GLline*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE));
 	GLpoly* polyPointer = reinterpret_cast<GLpoly*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY));
-	for (int i = 0; i < polyPointer->getIndexCapacity() / 3; ++i) { // multiple of 3
+	GLprimitive* pointPointer = reinterpret_cast<GLprimitive*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT));
+	
+	for (unsigned int i = 0; i < polyPointer->getIndexCapacity() / 3; ++i) { // multiple of 3
 		if (rayPoly(nearV, farV, polyPointer->getX(polyPointer->getpIndices()[3 * i]), polyPointer->getY(polyPointer->getpIndices()[3 * i]), polyPointer->getZ(polyPointer->getpIndices()[3 * i]),
 			polyPointer->getX(polyPointer->getpIndices()[3 * i + 1]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 1]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 1]),
 			polyPointer->getX(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 2]))) {
-			if (saveCapacity[2] == 0) {
-				int min{ i }, max{ i }; // for going both direction (increasing / decreasing)
-				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
-				saveCapacity[2] = max - min + 1;
-				int* temp = new int[max - min + 1];
-				for (int k = 0; k < max - min + 1; ++k) {
-					temp[k] = k + min;
-					polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
-				}
-				delete[] saveIndex[2];
-				saveIndex[2] = temp;
-
-				polyPointer->drawing();
-				found = TRUE;
-				break;
-			}
 			// if SHIFT is pressed
-			else if ((nFlags & MK_SHIFT) && saveCapacity[2] != 0) {
-				int min{ i }, max{ i };
+			if ((nFlags & MK_SHIFT) && saveCapacity[2] != 0) {
+				unsigned int min{ i }, max{ i };
 				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
 				saveCapacity[2] += max - min + 1;
-				int* temp = new int[saveCapacity[2]];
-				for (int j = 0; j < saveCapacity[2] - max + min - 1; ++j) {
+				unsigned int* temp = new unsigned int[saveCapacity[2]];
+				for (unsigned int j = 0; j < saveCapacity[2] - max + min - 1; ++j) {
 					temp[j] = saveIndex[2][j];
 				}
-				for (int j = 0; j < max - min + 1; ++j) {
+				for (unsigned int j = 0; j < max - min + 1; ++j) {
 					temp[j + saveCapacity[2] - max + min - 1] = j + min;
 					polyPointer->setVCZ(polyPointer->getpIndices()[j + min], 0.0f);
 				}
 				delete[] saveIndex[2];
 				saveIndex[2] = temp;
 
+				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
+
+				saveCapacity[3] += max - min + 1;
+				unsigned int* tempLine = new unsigned int[saveCapacity[3]];
+				for (unsigned int j = 0; j < saveCapacity[3] - max + min - 1; ++j) {
+					tempLine[j] = saveIndex[3][j];
+				}
+				for (unsigned int j = 0; j < max - min + 1; ++j) {
+					tempLine[j + saveCapacity[3] - max + min - 1] = j + min;
+					// Do not change the color. 
+				}
+				
+
+				delete[] saveIndex[3];
+				saveIndex[3] = tempLine;
+
 				polyPointer->drawing();
 				found = TRUE;
 				break;
 			}
-			else if (saveCapacity[2] != 0) {				
-				for (int j = 0; j < saveCapacity[2]; ++j) {
+			else if (saveCapacity[0] != 0 || saveCapacity[1] != 0 || saveCapacity[2] != 0) {
+				// POLY
+				for (unsigned int j = 0; j < saveCapacity[2]; ++j) {
 					polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][j]], 0.9f);
 				}
 
-				delete saveIndex[2];
+				delete[] saveIndex[2];
+				delete[] saveIndex[3];
 
-				int min{ i }, max{ i };
+				// LINE
+				for (unsigned int j = 0; j < saveCapacity[1]; ++j) {
+					linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
+					linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
+				}
+
+				delete[] saveIndex[1];
+				saveCapacity[1] = 0;
+				saveIndex[1] = new unsigned int[0];
+
+				// POINT
+				for (unsigned int j = 0; j < saveCapacity[0]; ++j) {
+					pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][j], 1.0f);
+				}
+
+				saveCapacity[0] = 0;
+				delete[] saveIndex[0];
+				saveIndex[0] = new unsigned int[0];
+
+				// POLY SPECIFIC
+				unsigned int min{ i }, max{ i };
 				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 2);
 				saveCapacity[2] = max - min + 1;
-				saveIndex[2] = new int[max - min + 1];
-				for (int k = 0; k < max - min + 1; ++k) {
+				saveIndex[2] = new unsigned int[max - min + 1];
+				for (unsigned int k = 0; k < max - min + 1; ++k) {
 					saveIndex[2][k] = k + min;
 					polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
 				}
+
+				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
+
+				saveCapacity[3] = max - min + 1;
+				saveIndex[3] = new unsigned int[max - min + 1];
+				for (unsigned int k = 0; k < max - min + 1; ++k) {
+					saveIndex[3][k] = k + min;
+					// Do not change color
+				}
+
+				polyPointer->drawing();
+				linePointer->drawing();
+				pointPointer->drawing();
+
+				found = TRUE;
+				break;
+			}
+			
+			else if (saveCapacity[2] == 0) {
+				unsigned int min{ i }, max{ i }; // for going both direction (increasing / decreasing)
+				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
+				saveCapacity[2] = max - min + 1;
+				unsigned int* temp = new unsigned int[max - min + 1];
+				for (unsigned int k = 0; k < max - min + 1; ++k) {
+					temp[k] = k + min;
+					polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
+				}
+				delete[] saveIndex[2];
+				saveIndex[2] = temp;
+
+				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
+
+				saveCapacity[3] = max - min + 1;
+				unsigned int* tempLine = new unsigned int[max - min + 1];
+				for (unsigned int k = 0; k < max - min + 1; ++k) {
+					tempLine[k] = k + min;
+					// Do not change color
+				}
+				delete[] saveIndex[3];
+				saveIndex[3] = tempLine;
 
 				polyPointer->drawing();
 				found = TRUE;
@@ -564,39 +630,20 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 	// LINE vertecis always go by pairs. In even numbers. getCapacity() : even number.
 	// saveIndex[1] : index of EBO of Line. indices[ saveIndex[1][x] ] gives index of vertex in vertices array.
 	//                Using the value inside indices, 'Extrude' but be careful to avoid adding same vertex multiple times.
-	GLline* linePointer = reinterpret_cast<GLline*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE));
-	for (int i = 0; i < linePointer->getIndexCapacity() / 2; ++i) {
+	for (unsigned int i = 0; i < linePointer->getIndexCapacity() / 2; ++i) {
 		if (rayLine(nearV, farV, linePointer->getX(linePointer->getpIndices()[2*i]), linePointer->getY(linePointer->getpIndices()[2 * i]),
 			linePointer->getZ(linePointer->getpIndices()[2*i]), linePointer->getX(linePointer->getpIndices()[2 * i + 1]), linePointer->getY(linePointer->getpIndices()[2 * i + 1]),
 			linePointer->getZ(linePointer->getpIndices()[2 * i + 1]))) {
-			if (saveCapacity[1] == 0) { // saveCapacity[1] for saving capacity of LINE vertices
-				// first element equals second element in previous pair or second element equals first element in nextpair
-				int min{ i }, max{ i };
-				LINEIndexIdentifier(linePointer->getpIndices(), min, max, linePointer->getIndexCapacity() / 2);
-				saveCapacity[1] = max - min + 1;
-				int* tempOrder = new int[max - min + 1];
-				for (int k = 0; k < max - min + 1; ++k) {
-					tempOrder[k] = k + min;
-					linePointer->setVCX(linePointer->getpIndices()[k + min], 1.0f);
-					linePointer->setVCY(linePointer->getpIndices()[k + min], 1.0f);
-				}
-				delete[] saveIndex[1];
-				saveIndex[1] = tempOrder;
-
-				linePointer->drawing();
-				found = TRUE;
-				break;
-			}
 			// if SHIFT is pressed, select multiple vertices of LINE
-			else if ((nFlags & MK_SHIFT) && saveCapacity[1] != 0) {
-				int min{ i }, max{ i };
+			if ((nFlags & MK_SHIFT) && saveCapacity[1] != 0) {
+				unsigned int min{ i }, max{ i };
 				LINEIndexIdentifier(linePointer->getpIndices(), min, max, linePointer->getIndexCapacity() / 2);
 				saveCapacity[1] += max - min + 1;
-				int* temp = new int[saveCapacity[1]];
-				for (int j = 0; j < saveCapacity[1] - max + min - 1; ++j) {
+				unsigned int* temp = new unsigned int[saveCapacity[1]];
+				for (unsigned int j = 0; j < saveCapacity[1] - max + min - 1; ++j) {
 					temp[j] = saveIndex[1][j];
 				}
-				for (int j = 0; j < max - min + 1; ++j) {
+				for (unsigned int j = 0; j < max - min + 1; ++j) {
 					temp[j + saveCapacity[1] - max + min - 1] = j + min;
 					linePointer->setVCX(linePointer->getpIndices()[j + min], 1.0f);
 					linePointer->setVCY(linePointer->getpIndices()[j + min], 1.0f);
@@ -609,23 +656,67 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				found = TRUE;
 				break;
 			}
-			else if (saveCapacity[1] != 0) {
-				for (int j = 0; j < saveCapacity[1]; ++j) {
+			else if (saveCapacity[0] != 0 || saveCapacity[1] != 0 || saveCapacity[2] != 0) {
+				// POLY
+				for (unsigned int j = 0; j < saveCapacity[2]; ++j) {
+					polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][j]], 0.9f);
+				}
+				delete[] saveIndex[3];
+				saveCapacity[3] = 0;
+				saveIndex[3] = new unsigned int[0];
+
+				delete[] saveIndex[2];
+				saveCapacity[2] = 0;
+				saveIndex[2] = new unsigned int[0];
+
+				// LINE
+				for (unsigned int j = 0; j < saveCapacity[1]; ++j) {
 					linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
 					linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
 				}
 
-				delete saveIndex[1];
+				delete[] saveIndex[1];
+				saveCapacity[1] = 0;
 
-				int min{ i }, max{ i };
+				// POINT
+				for (unsigned int j = 0; j < saveCapacity[0]; ++j) {
+					pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][j], 1.0f);
+				}
+
+				saveCapacity[0] = 0;
+				delete[] saveIndex[0];
+				saveIndex[0] = new unsigned int[0];
+
+				// LINE SPECIFIC
+				unsigned int min{ i }, max{ i };
 				LINEIndexIdentifier(linePointer->getpIndices(), min, max, linePointer->getIndexCapacity() / 2);
 				saveCapacity[1] = max - min + 1;
-				saveIndex[1] = new int[max - min + 1];
-				for (int k = 0; k < max - min + 1; ++k) {
+				saveIndex[1] = new unsigned int[max - min + 1];
+				for (unsigned int k = 0; k < max - min + 1; ++k) {
 					saveIndex[1][k] = k + min;
 					linePointer->setVCX(linePointer->getpIndices()[k + min], 1.0f);
 					linePointer->setVCY(linePointer->getpIndices()[k + min], 1.0f);
 				}
+
+				polyPointer->drawing();
+				linePointer->drawing();
+				pointPointer->drawing();
+				found = TRUE;
+				break;
+			}
+			else if (saveCapacity[1] == 0) { // saveCapacity[1] for saving capacity of LINE vertices
+				// first element equals second element in previous pair or second element equals first element in nextpair
+				unsigned int min{ i }, max{ i };
+				LINEIndexIdentifier(linePointer->getpIndices(), min, max, linePointer->getIndexCapacity() / 2);
+				saveCapacity[1] = max - min + 1;
+				unsigned int* tempOrder = new unsigned int[max - min + 1];
+				for (unsigned int k = 0; k < max - min + 1; ++k) {
+					tempOrder[k] = k + min;
+					linePointer->setVCX(linePointer->getpIndices()[k + min], 1.0f);
+					linePointer->setVCY(linePointer->getpIndices()[k + min], 1.0f);
+				}
+				delete[] saveIndex[1];
+				saveIndex[1] = tempOrder;
 
 				linePointer->drawing();
 				found = TRUE;
@@ -635,27 +726,14 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 	}	
 
 	// POINT
-	for (int i = 0; i < pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getCapacity(); ++i) {
+	for (unsigned int i = 0; i < pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getCapacity(); ++i) {
 		if (rayPoint(nearV, farV, pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getX(i),
 			pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getY(i), pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->getZ(i))) {
-			// just add one
-			if (saveCapacity[0] == 0) {
-				// add one point to saveIndex[0] (POINT)
-				int* temp = new int[++saveCapacity[0]];
-				temp[0] = i; // same index as GLpoint in Layer
-				delete[] saveIndex[0];
-				saveIndex[0] = temp;
-
-				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(i, 0.0f);
-				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->drawing();
-				found = TRUE;
-				break;
-			}
 			// if SHIFT is pressed, select multiple POINTS
-			else if ((nFlags & MK_SHIFT) && saveCapacity[0] != 0) {
+			if ((nFlags & MK_SHIFT) && saveCapacity[0] != 0) {
 				// add one point to saveIndex[0] (POINT)
-				int* temp = new int[++saveCapacity[0]];
-				for (int j = 0; j < saveCapacity[0] - 1; ++j) {
+				unsigned int* temp = new unsigned int[++saveCapacity[0]];
+				for (unsigned int j = 0; j < saveCapacity[0] - 1; ++j) {
 					temp[j] = saveIndex[0][j];
 				}
 				temp[saveCapacity[0] - 1] = i; // same index as GLpoint in Layer
@@ -668,19 +746,64 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 				break;
 			}
 			// delete all and add one
-			else if (saveCapacity[0] != 0) {
-				for (int j = 0; j < saveCapacity[0]; ++j) {
+			else if (saveCapacity[0] != 0 || saveCapacity[1] != 0 || saveCapacity[2] != 0) {
+				// POLY
+				for (unsigned int j = 0; j < saveCapacity[2]; ++j) {
+					polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][j]], 0.9f);
+				}
+
+				delete[] saveIndex[2];
+				saveCapacity[2] = 0;
+				saveIndex[2] = new unsigned int[0];
+
+				delete[] saveIndex[3];
+				saveCapacity[3] = 0;
+				saveIndex[3] = new unsigned int[0];
+
+				// LINE
+				for (unsigned int j = 0; j < saveCapacity[1]; ++j) {
+					linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
+					linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
+				}
+
+				delete[] saveIndex[1];
+				saveCapacity[1] = 0;
+				saveIndex[1] = new unsigned int[0];
+
+				// POINT
+				for (unsigned int j = 0; j < saveCapacity[0]; ++j) {
 					pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][j], 1.0f);
 				}
 
 				saveCapacity[0] = 1;
 				delete[] saveIndex[0];
-				saveIndex[0] = new int[1];
+
+
+				// POINT SPECIFIC
+				saveIndex[0] = new unsigned int[1];
 				saveIndex[0][0] = i;
 
 				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(i, 0.0f);
+
 				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->drawing();
+				polyPointer->drawing();
+				linePointer->drawing();
+
 				found = TRUE;
+				break;
+			}
+			// just add one
+			else if (saveCapacity[0] == 0) {
+				// add one point to saveIndex[0] (POINT)
+				unsigned int* temp = new unsigned int[++saveCapacity[0]];
+				temp[0] = i; // same index as GLpoint in Layer
+
+				delete[] saveIndex[0];
+				saveIndex[0] = temp;
+
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(i, 0.0f);
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->drawing();
+				found = TRUE;				
 				break;
 			}
 		}
@@ -690,16 +813,16 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 	// when SHIFT is not pressed and if not found. Turn off the yellow color.  
 	if (!found && (saveCapacity[2] != 0 || saveCapacity[1] != 0 || saveCapacity[0] != 0)) {
 
-		for (int i = 0; i < saveCapacity[2]; ++i) {
+		for (unsigned int i = 0; i < saveCapacity[2]; ++i) {
 			polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][i]], 0.9f);
 		}
 		polyPointer->drawing();
 
 		saveCapacity[2] = 0;
 		delete[] saveIndex[2];
-		saveIndex[2] = new int[0];
+		saveIndex[2] = new unsigned int[0];
 
-		for (int i = 0; i < saveCapacity[1]; ++i) {
+		for (unsigned int i = 0; i < saveCapacity[1]; ++i) {
 			linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
 			linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][i]], 0.0f);
 		}
@@ -707,15 +830,15 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 
 		saveCapacity[1] = 0;
 		delete[] saveIndex[1];
-		saveIndex[1] = new int[0];
+		saveIndex[1] = new unsigned int[0];
 
-		for (int i = 0; i < saveCapacity[0]; ++i) {
+		for (unsigned int i = 0; i < saveCapacity[0]; ++i) {
 			pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][i], 1.0f);
 		}
 		pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->drawing();
 
 		saveCapacity[0] = 0;
-		int* temp = new int[0];
+		unsigned int* temp = new unsigned int[0];
 		delete saveIndex[0];
 		saveIndex[0] = temp;
 	}
@@ -814,12 +937,65 @@ void CstructureView::OnFillToolbar() {
 void CstructureView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	// TODO: Add your message handler code here and/or call default
-	CView::OnKeyDown(nChar, nRepCnt, nFlags);
+	// CView::OnKeyDown(nChar, nRepCnt, nFlags);
+
+	CstructureDoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+	if (!pDoc)
+		return;
+
+	GLpoly* polyPointer = reinterpret_cast<GLpoly*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY));
+	GLline* linePointer = reinterpret_cast<GLline*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->LINE));
+	GLprimitive* pointPointer = reinterpret_cast<GLprimitive*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT));
 
 	switch (nChar) {
 	case VK_DELETE: {
 		// Delete selected vertices and polyEBO, lineEBO.
+		
+		// POINT exists  index : 0
+		if (saveCapacity[0] != 0) {
+			pointPointer->rangeDelete(saveIndex[0][0], saveIndex[0][saveCapacity[0] - 1]);
+
+			delete[] saveIndex[0];
+			saveCapacity[0] = 0;
+			saveIndex[0] = new unsigned int[0];
+
+			pointPointer->drawing();
+		}
+
+		// LINE exists  index : 1
+		if (saveCapacity[1] != 0) {
+			linePointer->rangeDelete(saveIndex[1][0], saveIndex[1][saveCapacity[1] - 1]);
+
+			delete[] saveIndex[1];
+			saveCapacity[1] = 0;
+			saveIndex[1] = new unsigned int[0];
+			
+			linePointer->drawing();
+		}
+
+		// POLY exists  index : 2 (poly) , 3 (line)
+		if (saveCapacity[2] != 0) {
+			polyPointer->rangeDelete(saveIndex[2][0], saveIndex[2][saveCapacity[2] - 1], saveIndex[3][0], saveIndex[3][saveCapacity[3] - 1]);
+
+			delete[] saveIndex[2];
+			delete[] saveIndex[3];
+
+			saveCapacity[2] = 0;
+			saveCapacity[3] = 0;
+
+			saveIndex[2] = new unsigned int[0];
+			saveIndex[3] = new unsigned int[0];
+
+			polyPointer->drawing();
+		}
 		break;
 	}
 	}
+
+	Invalidate();
 }
+
+// POLY에 saveIndex[2]를 이용해서 polyEBO에 접근. 그러면 vertex가 나오겠지. 거기서 min, max 값을 뽑을 수 있을까?
+// 애초에 polyEBO 에 접근 할 때, polyEBO 안에 있는 값이 중복되면 안된다. 그걸 이용해서 EXTRUDE rectangle에 
+// 보내면 풀 수 있음.

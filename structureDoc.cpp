@@ -32,6 +32,7 @@ BEGIN_MESSAGE_MAP(CstructureDoc, CDocument)
 	ON_COMMAND(ID_POLY_TRIANGLES, &CstructureDoc::OnPolyTriToolbar)
 	ON_COMMAND(ID_POLY_RECTANGLES, &CstructureDoc::OnPolyRecToolbar)
 	ON_COMMAND(ID_POLY_CIRCLE, &CstructureDoc::OnPolyCircleToolbar)
+	ON_COMMAND(ID_EXTRUDE_TOOLBAR, &CstructureDoc::OnExtrudeToolbar)
 END_MESSAGE_MAP()
 
 
@@ -45,6 +46,7 @@ CstructureDoc::CstructureDoc() noexcept
 	pTridlg = NULL;
 	pRectdlg = NULL;
 	pCircledlg = NULL;
+	pExtrudedlg = NULL; 
 	layerCapacity = 0;
 	pLayer = new Layer[ layerCapacity ];
 }
@@ -294,5 +296,25 @@ void CstructureDoc::OnPolyCircleToolbar() {
 		pCircledlg->Create(IDD_CIRCLE_DIALOG);
 		pCircledlg->mode = 2;
 		pCircledlg->ShowWindow(SW_SHOW);
+	}
+}
+
+// MAKE SURE THAT ONLY ONE POLY LINE OR POLY SURFACE IS CHOSEN
+void CstructureDoc::OnExtrudeToolbar() {
+	if (pExtrudedlg != NULL) {
+		pExtrudedlg->SetFocus();
+	}
+	else {
+		CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+		CstructureView* pView = (CstructureView*)pMainFrame->GetActiveView();
+		pExtrudedlg = new Extrude(pView);
+		pExtrudedlg->pView = pView;
+		pExtrudedlg->pDoc = this;
+		pExtrudedlg->extrudeX = 0;
+		pExtrudedlg->extrudeY = 0;
+		pExtrudedlg->extrudeZ = 0;
+
+		pExtrudedlg->Create(IDD_EXTRUDE_DIALOG);
+		pExtrudedlg->ShowWindow(SW_SHOW);
 	}
 }

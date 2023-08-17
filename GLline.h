@@ -37,6 +37,11 @@ public:
 	void popVertex(); // override
 	void drawing(); // override
 	void draw(); // override
+	void rangeDelete(unsigned int, unsigned int); // override
+
+	// utility function for DELETION
+	void rangeDeleteLineEBO(unsigned int, unsigned int, unsigned int&, unsigned int&);
+	void rangeDeleteVBO(unsigned int, unsigned int, unsigned int&, unsigned int&);
 
 private:
 	unsigned int EBO;

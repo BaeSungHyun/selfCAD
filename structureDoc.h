@@ -10,6 +10,7 @@
 #include "Triangle.h"
 #include "Rectangle.h"
 #include "Circle.h"
+#include "Extrude.h"
 
 
 class CstructureDoc : public CDocument
@@ -32,6 +33,7 @@ public:
 	Triangle* pTridlg;
 	Rectangles* pRectdlg;
 	Circle* pCircledlg;
+	Extrude* pExtrudedlg;
 
 // Operations
 public:
@@ -66,6 +68,7 @@ public:
 	afx_msg void OnPolyTriToolbar();
 	afx_msg void OnPolyRecToolbar();
 	afx_msg void OnPolyCircleToolbar();
+	afx_msg void OnExtrudeToolbar();
 
 #ifdef SHARED_HANDLERS
 	// Helper function that sets search content for a Search Handler

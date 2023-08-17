@@ -57,9 +57,13 @@ public:
 	virtual void addCapacity(int);
 	virtual int getCapacity() const;
 
+	// deletion
+	virtual void rangeDelete(unsigned int, unsigned int);
+
 	// mode
 	virtual void setMode(int);
 	virtual void setRadio(int);
+	virtual void setCenter(float, float, float);
 
 	// how to paint
 	virtual void drawing();

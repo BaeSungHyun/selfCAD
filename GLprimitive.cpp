@@ -174,11 +174,34 @@ void GLprimitive::addCapacity(int addCapacity) {
 		capacity += addCapacity;
 }
 
+// DELETION
+void GLprimitive::rangeDelete(unsigned int min, unsigned int max) { // capacity differnece: max - min + 1
+	float* tempVertices = new float[offset * (getCapacity() - max + min - 1)];
+	for (int i = 0; i < min; ++i) {
+		for (int k = 0; k < offset; ++k) {
+			tempVertices[offset * i + k] = vertices[offset * i + k];
+		}
+	}
+	for (int i = max + 1; i < getCapacity(); ++i) {
+		for (int k = 0; k < offset; ++k) {
+			tempVertices[offset * (i - max + min - 1) + k] = vertices[offset * i + k];
+		}
+	}
+
+	delete[] vertices;
+	vertices = tempVertices;
+
+	addCapacity((-1) * static_cast<int>(max - min + 1));
+}
+
 // MODE
 void GLprimitive::setMode(int mode) {
 	return;
 }
 void GLprimitive::setRadio(int Radio) {
+	return;
+}
+void GLprimitive::setCenter(float x, float y, float z) {
 	return;
 }
 

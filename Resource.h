@@ -12,6 +12,7 @@
 #define IDD_TRIANGLE_DIALOG             319
 #define IDD_RECT_DIALOG                 321
 #define IDD_CIRCLE_DIALOG               323
+#define IDD_EXTRUDE_DIALOG              325
 #define IDC_POINT_ERASE_BUTTON          1000
 #define IDC_POINT_X                     1001
 #define IDC_POINT_Y                     1002
@@ -36,6 +37,11 @@
 #define IDC_CIRCLE_Y                    1022
 #define IDC_CIRCLE_Z                    1023
 #define IDC_CIRCLE_RADIUS               1024
+#define IDC_EXTRUDE_ERASE_BUTTON        1025
+#define IDC_EXTRUDE_X                   1026
+#define IDC_EXTRUDE_Y                   1027
+#define IDC_EXTRUDE_Z                   1028
+#define IDC_EXTRUDE_SPACING             1029
 #define ID_LAYER_LAYER1                 32772
 #define ID_POINT_TOOLBAR                32773
 #define ID_LINE_TOOLBAR                 32774
@@ -49,14 +55,15 @@
 #define ID_POLY_RECTANGLES              32783
 #define ID_POLY_CIRCLE                  32784
 #define ID_FILL_TOOLBAR                 32785
+#define ID_EXTRUDE_TOOLBAR              32786
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        325
-#define _APS_NEXT_COMMAND_VALUE         32786
-#define _APS_NEXT_CONTROL_VALUE         1025
+#define _APS_NEXT_RESOURCE_VALUE        327
+#define _APS_NEXT_COMMAND_VALUE         32787
+#define _APS_NEXT_CONTROL_VALUE         1030
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

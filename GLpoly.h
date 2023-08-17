@@ -32,20 +32,24 @@ public:
 	// FAN - for circles, etc.
 	void setMode(int);
 	void setRadio(int);
+	void setCenter(float, float, float);
 	
 	// TRIANGLES pushVertex utility function
 	void TRIANGLESLinepushVertex();
 	void TRIANGLESpushVertex();
 
-	// RECTANGELS pushVertex utility function
+	// RECTANGELS pushVertex utility function - two corner points
 	void RECTANGLESLinepushVertex();
 	void RECTANGLESpushVertex();
+
+	// RECTANGLES pushVertex utility function - four corner points
+	void ExtrudeLinePushVertex();
+	void ExtrudePushVertex();
 
 	// CIRCLES pushVertex utility function
 	void CIRCLESLinepushVertex();
 	void CIRCLESpushVertex();
 	void CIRCLEsetRadius(float);
-
 	
 	// overrides
 	void setVertex(float, float, float, float = 1.0f, float = 1.0f, float = 1.0f);
@@ -53,6 +57,12 @@ public:
 	void popVertex();
 	void drawing();
 	void draw();
+	void rangeDelete(unsigned int, unsigned int, unsigned int, unsigned int);
+
+	// utility function for DELETION
+	void rangeDeleteLineEBO(unsigned int, unsigned int, unsigned int&, unsigned int&);
+	void rangeDeletePolyEBO(unsigned int, unsigned int, unsigned int&, unsigned int&);
+	void rangeDeleteVBO(unsigned int, unsigned int, unsigned int&, unsigned int&);
 
 private:
 	unsigned int lineVAO;
@@ -64,6 +74,7 @@ private:
 
 	int mRadio; // for direction in RECTANGLE, CIRCLE
 	float radius{ 0.0f }; // CIRCLE
+	float centerX, centerY, centerZ; // CIRCLE
 
 	int lineIndividualCapacity{ 0 };
 	int individualCapacity{ 0 };

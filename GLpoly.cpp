@@ -124,6 +124,12 @@ void GLpoly::setRadio(int mRadio) {
 	this->mRadio = mRadio;
 }
 
+void GLpoly::setCenter(float x, float y, float z) {
+	centerX = x; 
+	centerY = y;
+	centerZ = z;
+}
+
 void GLpoly::TRIANGLESLinepushVertex() {
 	if (lineIndividualCapacity == 2) { // 2, 4
 		unsigned int* indexTemp = new unsigned int[lineIndexCapacity + 4];
@@ -179,7 +185,7 @@ void GLpoly::RECTANGLESLinepushVertex() {
 				indexTemp[j] = lineIndices[j];
 			}
 			// before incrementing getCapacity() -> so currently 1
-			indexTemp[lineIndexCapacity] = getCapacity() + 2; // 4
+			indexTemp[lineIndexCapacity] = getCapacity() + 2                                                                                        ; // 4
 			indexTemp[lineIndexCapacity + 1] = getCapacity() - 1; // 1
 			indexTemp[lineIndexCapacity + 2] = getCapacity() + 1; // 3
 			indexTemp[lineIndexCapacity + 3] = getCapacity(); // 2
@@ -252,6 +258,54 @@ void GLpoly::RECTANGLESpushVertex() {
 	}
 }
 
+// counter-clock wise or clock-wise doesn't matter - just concatenated
+void GLpoly::ExtrudeLinePushVertex() {
+	// lineIndividualCapacity == 8 in final
+	unsigned int* tempLineIndices = new unsigned int[lineIndexCapacity + 8];
+	for (int j = 0; j < lineIndexCapacity; ++j) {
+		tempLineIndices[j] = lineIndices[j];
+	}
+	// before incrementing getCapacity() -> current state
+	tempLineIndices[lineIndexCapacity] = getCapacity(); // n
+	tempLineIndices[lineIndexCapacity + 1] = getCapacity() + 1; // n + 1
+	tempLineIndices[lineIndexCapacity + 2] = getCapacity() + 1; // n + 1
+	tempLineIndices[lineIndexCapacity + 3] = getCapacity() + 2; // n + 2
+	tempLineIndices[lineIndexCapacity + 4] = getCapacity() + 2; // n + 2
+	tempLineIndices[lineIndexCapacity + 5] = getCapacity() + 3; // n + 3
+	tempLineIndices[lineIndexCapacity + 6] = getCapacity() + 3; // n + 3
+	tempLineIndices[lineIndexCapacity + 7] = getCapacity(); // n
+
+	delete[] lineIndices;
+	lineIndices = tempLineIndices;
+	
+	// no need for linIndividualCapacity because it's one time thing
+
+	lineIndexCapacity += 8;
+}
+
+void GLpoly::ExtrudePushVertex() {
+	// individualCapacity == 6 in final
+	unsigned int* tempIndices = new unsigned int[indexCapacity + 6];
+	for (int j = 0; j < indexCapacity; ++j) {
+		tempIndices[j] = indices[j];
+	}
+	// before incrementing getCapacity() -> current state
+	// reason why pushVertex() should be done in a concatenated loop
+	tempIndices[indexCapacity] = getCapacity(); // n
+	tempIndices[indexCapacity + 1] = getCapacity() + 1; // n + 1
+	tempIndices[indexCapacity + 2] = getCapacity() + 3; // n + 3
+	tempIndices[indexCapacity + 3] = getCapacity() + 2; // n + 2
+	tempIndices[indexCapacity + 4] = getCapacity() + 1; // n + 1
+	tempIndices[indexCapacity + 5] = getCapacity() + 3; // n + 3
+
+	delete[] indices;
+	indices = tempIndices;
+
+	// no need for individualCapacity because it's one time thing
+
+	indexCapacity += 6;
+}
+
 // indexCapacity += 2*radius*3  * 3
 // lineIndexCapacity += 2*radius*3 * 2
 
@@ -264,15 +318,16 @@ void GLpoly::CIRCLESLinepushVertex() {
 	// getCapacity() -> first. Remember it is before GLprimitive::pushVertex()
 	int capacity{ getCapacity() };
 	int first{ getCapacity() };
-	for (int j = 0; j < increment/2; ++j) {
-		indexTemp[lineIndexCapacity + 2*j] = capacity + 1;
+	for (int j = 0; j < increment / 2; ++j) {
+		indexTemp[lineIndexCapacity + 2 * j] = capacity;
 		if (j == increment / 2 - 1) {
-			indexTemp[lineIndexCapacity + 2 * j + 1] = first + 1;
+			indexTemp[lineIndexCapacity + 2 * j + 1] = first;
 			break;
 		}
-		indexTemp[lineIndexCapacity + 2*j + 1] = capacity + 2;
+		indexTemp[lineIndexCapacity + 2 * j + 1] = capacity + 1;
 		++capacity;
 	}
+
 	delete[] lineIndices;
 	lineIndices = indexTemp;
 
@@ -280,7 +335,7 @@ void GLpoly::CIRCLESLinepushVertex() {
 }
 
 void GLpoly::CIRCLESpushVertex() {
-	int increment{ 2 * static_cast<int>(radius) * 3 * 3 };
+	int increment{ (2 * static_cast<int>(radius) * 3 - 2) * 3 }; // 3 * (n - 2)
 	unsigned int* indexTemp = new unsigned int[indexCapacity + increment];
 	for (int j = 0; j < indexCapacity; ++j) {
 		indexTemp[j] = indices[j];
@@ -291,13 +346,10 @@ void GLpoly::CIRCLESpushVertex() {
 	for (int j = 0; j < increment / 3; ++j) {
 		indexTemp[indexCapacity + 3*j] = first;
 		indexTemp[indexCapacity + 3*j + 1] = capacity + 1;
-		if (j == increment / 3 - 1) {
-			indexTemp[indexCapacity + 3 * j + 2] = first + 1;
-			break;
-		}
 		indexTemp[indexCapacity + 3 * j + 2] = capacity + 2;
 		++capacity;
 	}
+
 	delete[] indices;
 	indices = indexTemp;
 
@@ -370,32 +422,30 @@ void GLpoly::pushVertex() {
 	case FAN: {
 		CIRCLESLinepushVertex();
 		CIRCLESpushVertex();
-		GLprimitive::pushVertex();
-		int center{ getCapacity() - 1 };
 		if (mRadio == 0) { // x-axis in dialog but in real z-axis
 			// x = radius * cos(2*pi / 2*radius*3 * theta);
 			// for (theta = 0; theta < 2*radius*3; ++theta)
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
-				this->setVertex(getX(center) + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
-					getY(center) + radius * glm::sin(2* 3.14159265358979323846264338327950288 / (2*radius * 3) * theta), getZ(center), 0.9f, 0.9f, 0.9f);
+				this->setVertex(centerX + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
+					centerY + radius * glm::sin(2* 3.14159265358979323846264338327950288 / (2*radius * 3) * theta), centerZ, 0.9f, 0.9f, 0.9f);
 				GLprimitive::pushVertex();
 			}
 		}
 		else if (mRadio == 1) { // y-axis in dialog but in real x-axis
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
-				this->setVertex(getX(center), getY(center) + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta)
-					, getZ(center) + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta), 0.9f, 0.9f, 0.9f);
+				this->setVertex(centerX, centerY + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta)
+					, centerZ + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta), 0.9f, 0.9f, 0.9f);
 				GLprimitive::pushVertex();
 			}
 		}
 		else if (mRadio == 2) { // z-axis in dialog but in real y-axis
 			for (int theta = 0; theta < 2 * radius * 3; ++theta) {
-				this->setVertex(getX(center) + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
-					getY(center), getZ(center) + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta), 0.9f, 0.9f, 0.9f);
+				this->setVertex(centerX + radius * glm::cos(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta),
+					centerY, centerZ + radius * glm::sin(2 * 3.14159265358979323846264338327950288 / (2 * radius * 3) * theta), 0.9f, 0.9f, 0.9f);
 				GLprimitive::pushVertex();
 			}
-			break;
 		}
+		break;
 	}
 	case FILL: {
 		GLprimitive::pushVertex();
@@ -599,4 +649,69 @@ void GLpoly::draw() {
 	glBindVertexArray(polyVAO);
 	glDrawElements(GL_TRIANGLES, indexCapacity, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+void GLpoly::rangeDelete(unsigned int minPoly, unsigned int maxPoly, unsigned int minLine, unsigned int maxLine) {
+	unsigned int minVertexIndex, maxVertexIndex;
+	// Delete vertices
+	rangeDeleteVBO(minPoly, maxPoly, minVertexIndex, maxVertexIndex);
+	// Delete line indices (lineEBO)
+	rangeDeleteLineEBO(minLine, maxLine, minVertexIndex, maxVertexIndex);
+	// Delete poly indices (polyEBO)
+	rangeDeletePolyEBO(minPoly, maxPoly, minVertexIndex, maxVertexIndex);
+}
+
+void GLpoly::rangeDeletePolyEBO(unsigned int min, unsigned int max, unsigned int& minVertexIndex, unsigned int& maxVertexIndex) {
+	unsigned int reducedCapacityVBO = maxVertexIndex - minVertexIndex + 1;
+
+	unsigned int* tempIndices = new unsigned int[indexCapacity - max + min - 1];
+	for (int i = 0; i < min; ++i) {
+		tempIndices[i] = indices[i];
+	}
+	for (int i = max + 1; i < indexCapacity; ++i) {
+		tempIndices[i - max + min - 1] = indices[i] - reducedCapacityVBO;
+	}
+
+	delete[] indices;
+	indices = tempIndices;
+
+	// Reduce Capacity
+	indexCapacity -= static_cast<int>(max - min + 1);
+}
+
+void GLpoly::rangeDeleteLineEBO(unsigned int min, unsigned int max, unsigned int& minVertexIndex, unsigned int& maxVertexIndex) {
+	unsigned int reducedCapacityVBO = maxVertexIndex - minVertexIndex + 1;
+
+	unsigned int* tempIndices = new unsigned int[lineIndexCapacity - max + min - 1];
+	for (int i = 0; i < min; ++i) {
+		tempIndices[i] = lineIndices[i];
+	}
+	for (int i = max + 1; i < lineIndexCapacity; ++i) {
+		tempIndices[i - max + min - 1] = lineIndices[i] - reducedCapacityVBO;
+	}
+
+	delete[] lineIndices;
+	lineIndices = tempIndices;
+
+	// Reduce Capacity
+	lineIndexCapacity -= static_cast<int>(max - min + 1);
+}
+
+void GLpoly::rangeDeleteVBO(unsigned int min, unsigned int max, unsigned int& minVertexIndex, unsigned int& maxVertexIndex) {
+	minVertexIndex = indices[min];
+	maxVertexIndex = indices[max];
+
+	for (int i = min + 1; i < min + 3; ++i) {
+		if (minVertexIndex > indices[i]) {
+			minVertexIndex = indices[i];
+		}
+	}
+	for (int i = max - 1; i > max - 3; --i) {
+		if (maxVertexIndex < indices[i]) {
+			maxVertexIndex = indices[i];
+		}
+	}
+
+	// Reduce Capacity included
+	GLprimitive::rangeDelete(minVertexIndex, maxVertexIndex);
 }

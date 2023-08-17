@@ -93,7 +93,7 @@ BOOL CstructureView::rayPoly(const glm::vec4& nearest, const glm::vec4& farthest
 }
 
 // return actual range of min, max in 'indices' (lineEBO)
-void CstructureView::LINEIndexIdentifier(const unsigned int* saveIndex, int& min, int& max, const int LINEIndexCapacity) {
+void CstructureView::LINEIndexIdentifier(const unsigned int* saveIndex, unsigned int& min, unsigned int& max, const int LINEIndexCapacity) {
 	// compare current elment's first with previous element's second
 	while (min >= 1 && saveIndex[2 * min] == saveIndex[2 * min - 1]) { // at least 2 == 1
 		--min;
@@ -105,8 +105,9 @@ void CstructureView::LINEIndexIdentifier(const unsigned int* saveIndex, int& min
 	}
 	max = 2 * max + 1;
 }
+
 // return actual range of min, max in 'indices' (polyEBO) 
-void CstructureView::POLYIndexIdentifier(const unsigned int* saveIndex, int& min, int& max, const int POLYIndexCapacity) {
+void CstructureView::POLYIndexIdentifier(const unsigned int* saveIndex, unsigned int& min, unsigned int& max, const int POLYIndexCapacity) {
 	// compare current element's all three coordinates with previoous element's all three coordinates
 	while (min > 0 && (saveIndex[3 * min] == saveIndex[3 * min - 3] || saveIndex[3 * min + 1] == saveIndex[3 * min - 2] || saveIndex[3 * min + 2] == saveIndex[3 * min - 1]
 		|| saveIndex[3 * min] == saveIndex[3 * min - 1] || saveIndex[3 * min] == saveIndex[3 * min -2] || saveIndex[3 * min + 1] == saveIndex[3 * min -3]
@@ -120,4 +121,25 @@ void CstructureView::POLYIndexIdentifier(const unsigned int* saveIndex, int& min
 		++max;
 	}
 	max = 3 * max + 2;
+}
+
+// return min, max of lineEBO of POLY by going over last 3 in saveIndex[3]
+// using min, max of polyEBO
+void CstructureView::POLYLineIndexIdentifier(unsigned int* polyEBO, unsigned int* lineEBO, unsigned int& min, unsigned int& max) {
+	// Use saveIndex[2] to get min and max 
+	unsigned int maxValue{ polyEBO[max] }, minValue{ polyEBO[min] };
+
+	for (int i = max; i > max - 3; --i) { // max , max - 1, max - 2 
+		if (polyEBO[i] > maxValue) {
+			maxValue = polyEBO[i];
+		}
+	}
+	for (int i = min; i < min + 3; ++i) {
+		if (polyEBO[i] < minValue) {
+			minValue = polyEBO[i];
+		}
+	}
+
+	min = 2 * minValue;
+	max = 2 * maxValue + 1;
 }

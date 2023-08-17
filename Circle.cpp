@@ -64,7 +64,7 @@ void Circle::OnOK()
 
 	GLprimitive* pCircle{ nullptr };
 	pCircle = pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY);
-	pCircle->setVertex(circleX, circleY, circleZ, 0.9f, 0.9f, 0.9f);
+	pCircle->setCenter(circleX, circleY, circleZ);
 	pCircle->setMode(mode);
 	pCircle->setRadio(mRadio);
 	reinterpret_cast<GLpoly*>(pCircle)->CIRCLEsetRadius(circleRadius);

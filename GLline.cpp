@@ -265,3 +265,46 @@ void GLline::draw() {
 	glBindVertexArray(0);
 }
 
+void GLline::rangeDelete(unsigned int min, unsigned int max) {
+	unsigned int minVertexIndex, maxVertexIndex;
+	// Delete vertices (not indices)
+	rangeDeleteVBO(min, max, minVertexIndex, maxVertexIndex);
+	// Delete indices
+	rangeDeleteLineEBO(min, max, minVertexIndex, maxVertexIndex);
+}
+
+// utility function for DELETION
+void GLline::rangeDeleteLineEBO(unsigned int min, unsigned int max, unsigned int& minVertexIndex, unsigned int& maxVertexIndex) {
+	unsigned int reducedCapacityVBO = maxVertexIndex - minVertexIndex + 1;
+
+	unsigned int* tempIndices = new unsigned int[indexCapacity - max + min - 1]; // no offset
+	for (int i = 0; i < min; ++i) {
+		tempIndices[i] = indices[i];
+	}
+	for (int i = max + 1; i < indexCapacity; ++i) {
+		// subtract as much as current capacity
+		tempIndices[i - max + min - 1] = indices[i] - reducedCapacityVBO;
+	}
+
+	delete[] indices;
+	indices = tempIndices;
+
+	// Reduce capacity
+	indexCapacity -= static_cast<int>(max - min + 1);
+}
+
+void GLline::rangeDeleteVBO(unsigned int min, unsigned int max, unsigned int& minVertexIndex, unsigned int& maxVertexIndex) {
+	minVertexIndex = indices[min];
+	maxVertexIndex = indices[max];
+
+	if (minVertexIndex > indices[min + 1]) {
+		minVertexIndex = indices[min + 1];
+	}
+	if (maxVertexIndex < indices[max - 1]) {
+		maxVertexIndex = indices[max - 1];
+	}
+
+	// Reduce capacity included
+	GLprimitive::rangeDelete(minVertexIndex, maxVertexIndex);
+}
+
