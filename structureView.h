@@ -37,7 +37,7 @@ public:
 	virtual BOOL rayPoint(const glm::vec4&, const glm::vec4&, const float, const float, const float);
 	virtual BOOL rayLine(const glm::vec4&, const glm::vec4&, const float, const float, const float, const float, const float, const float);
 	virtual BOOL rayPoly(const glm::vec4&, const glm::vec4&, const float, const float, const float,
-		const float, const float, const float, const float, const float, const float);
+		const float, const float, const float, const float, const float, const float, float&, float&, float&);
 	virtual void LINEIndexIdentifier(const unsigned int*, unsigned int&, unsigned int&, const int);
 	virtual void POLYIndexIdentifier(const unsigned int*, unsigned int&, unsigned int&, const int);
 	virtual void POLYLineIndexIdentifier(unsigned int*, unsigned int*, unsigned int&, unsigned int&); // use saveIndex[2] and put it in saveIndex[3]
@@ -93,25 +93,28 @@ private:
 	float cx, cy;
 
 	// camera
-	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	float distanceFromObject{ 3.0f };
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, distanceFromObject);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraDirection = glm::normalize(-cameraFront);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	// rotation by origin on camera
-	float yaw = -90.0f;
+	float yaw = 0.0f; // to make sure camera points to the negative z-axis
 	float pitch = 0.0f;
 	float lastX;
 	float lastY;
 
 	// rotation by origin on world
 	const float sensitivity2{ 0.5f };
-	glm::mat4 temp{glm::mat4(1.0f)};
+	glm::mat4 temp{glm::mat4(1.0f)}; // Identity matrix
 	float xAxis;
 	float yAxis;
+	float yaw2 = 0.0f;
+	float pitch2 = 0.0f;
 
 	// zoom
-	float zoom{ 45.0f };
+	float zoom{ 60.0f };
 
 
 	// axis VAO stored for defalut

@@ -250,7 +250,7 @@ BOOL CstructureView::SetupProjection() {
 		return FALSE;
 
 	// glm::ortho(0.0f, cx, 0.0f, cy, 0.1f, 100.0f);
-	projection = glm::perspective(glm::radians(zoom), cx / cy, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians(zoom), cx / cy, 0.1f, 1000.0f);
 	// retrieve the matrix uniform locations
 
 	return TRUE;
@@ -258,13 +258,13 @@ BOOL CstructureView::SetupProjection() {
 
 BOOL CstructureView::SetupView() {
 	view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, -10.0f, -50.0f));
+	view = glm::translate(view, glm::vec3(0.0f, -10.0f, -500.0f));
 	return TRUE;
 }
 
 BOOL CstructureView::SetupModel() {
 	model = glm::mat4(1.0f);
-	model = model * temp;
+	model *= temp;
 	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	return TRUE;
 }
@@ -278,6 +278,7 @@ BOOL CstructureView::SetupCamera() {
 	glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 
 	camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	// eye, center, up
 
 	return TRUE;
 }
@@ -285,11 +286,11 @@ BOOL CstructureView::SetupCamera() {
 void CstructureView::DimAxis() {
 	float vertices[] = {   // colors
 		0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		50.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		100.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 50.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 100.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 50.0f, 1.0f, 0.0f, 0.0f
+		0.0f, 0.0f, 100.0f, 1.0f, 0.0f, 0.0f
 	};
 
 	// need this in advance to update uniform variable in GLSL
@@ -400,7 +401,7 @@ void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
 	// rotate - origin is camera
 	float xPos = static_cast<float>(point.x);
 	float yPos = static_cast<float>(point.y);
-
+	// Euclid Rotation - pitch yaw roll
 	if (nFlags & MK_CONTROL && nFlags & MK_RBUTTON) {
 		float xOffset = xPos - lastX;
 		float yOffset = lastY - yPos;
@@ -411,8 +412,8 @@ void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
 		xOffset *= sensitivity;
 		yOffset *= sensitivity;
 
-		yaw += xOffset;
-		pitch += yOffset;
+		yaw += xOffset; // around y-axis
+		pitch += yOffset; // around x-axis
 
 		// check out of bounds
 		if (pitch > 89.0f)
@@ -421,9 +422,9 @@ void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
 			pitch = -89.0f;
 
 		glm::vec3 target;
-		target.x = glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
-		target.y = glm::sin(glm::radians(pitch));
-		target.z = glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
+		target.x = -glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch)); 
+		target.y = -glm::sin(glm::radians(pitch)); // turn the other way
+		target.z = -glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch)); 
 
 		cameraFront = glm::normalize(target);
 	
@@ -443,11 +444,11 @@ void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
 
 		glm::vec3 cameraMove = glm::vec3(xVec, yVec, 0);
 
-		cameraPos += cameraMove;
+		cameraPos -= cameraMove;
 		SetupCamera();
 		Invalidate();
 	}
-	// rotate - origin is world
+	// Arcball rotation 
 	else if (nFlags & MK_RBUTTON) {
 		// find rotational axis
 		xAxis = -(lastY - yPos);
@@ -456,7 +457,7 @@ void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
 		lastY = yPos;
 
 		temp = glm::rotate(temp, glm::radians(sensitivity2), glm::vec3(xAxis, yAxis, 0.0f));
-	
+
 		SetupModel();
 		Invalidate();
 	}
@@ -471,11 +472,11 @@ BOOL CstructureView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	zoom -= static_cast<float>(zDelta / 120);
 	if (zoom < 1.0f)
 		zoom = 1.0f;
-	if (zoom > 60.0f)
-		zoom = 60.0f;
+	if (zoom > 80.0f)
+		zoom = 80.0f;
 
 
-	projection = glm::perspective(glm::radians(zoom), cx / cy, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians(zoom), cx / cy, 0.1f, 1000.0f);
 
 	Invalidate();
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
@@ -503,142 +504,152 @@ void CstructureView::OnLButtonDown(UINT nFlags, CPoint point)
 	GLpoly* polyPointer = reinterpret_cast<GLpoly*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POLY));
 	GLprimitive* pointPointer = reinterpret_cast<GLprimitive*>(pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT));
 	
+	float minDistance;
+	int minIndex{ -1 };
+	minDistance = sqrt((nearV.x / nearV.w - farV.x / farV.w) * (nearV.x / nearV.w - farV.x / farV.w) +
+		(nearV.y / nearV.w - farV.y / farV.w) * (nearV.y / nearV.w - farV.y / farV.w) +
+		(nearV.z / nearV.w - farV.z / farV.w) * (nearV.z / nearV.w - farV.z / farV.w));
+	float minX, minY, minZ;
 	for (unsigned int i = 0; i < polyPointer->getIndexCapacity() / 3; ++i) { // multiple of 3
 		if (rayPoly(nearV, farV, polyPointer->getX(polyPointer->getpIndices()[3 * i]), polyPointer->getY(polyPointer->getpIndices()[3 * i]), polyPointer->getZ(polyPointer->getpIndices()[3 * i]),
 			polyPointer->getX(polyPointer->getpIndices()[3 * i + 1]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 1]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 1]),
-			polyPointer->getX(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 2]))) {
-			// if SHIFT is pressed
-			if ((nFlags & MK_SHIFT) && (saveCapacity[2] != 0 || saveCapacity[1] != 0 || saveCapacity[0] != 0)) {
-				unsigned int min{ i }, max{ i };
-				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
-				saveCapacity[2] += max - min + 1;
-				unsigned int* temp = new unsigned int[saveCapacity[2]];
-				for (unsigned int j = 0; j < saveCapacity[2] - max + min - 1; ++j) {
-					temp[j] = saveIndex[2][j];
-				}
-				for (unsigned int j = 0; j < max - min + 1; ++j) {
-					temp[j + saveCapacity[2] - max + min - 1] = j + min;
-					polyPointer->setVCZ(polyPointer->getpIndices()[j + min], 0.0f);
-				}
-				delete[] saveIndex[2];
-				saveIndex[2] = temp;
+			polyPointer->getX(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getY(polyPointer->getpIndices()[3 * i + 2]), polyPointer->getZ(polyPointer->getpIndices()[3 * i + 2]), minX, minY, minZ)) {
+			if (minDistance > sqrt((nearV.x / nearV.w - minX) * (nearV.x / nearV.w - minX) + (nearV.y / nearV.w - minY) * (nearV.y / nearV.w - minY) + (nearV.z / nearV.w - minZ) * (nearV.z / nearV.w - minZ))) {
+				minDistance = sqrt((nearV.x / nearV.w - minX) * (nearV.x / nearV.w - minX) + (nearV.y / nearV.w - minY) * (nearV.y / nearV.w - minY) + (nearV.z / nearV.w - minZ) * (nearV.z / nearV.w - minZ));
+				minIndex = i;
+			}
+		}
+	}
+	if (minIndex != -1) { // means found the minimum index 
+		// if SHIFT is pressed
+		if ((nFlags & MK_SHIFT) && (saveCapacity[2] != 0 || saveCapacity[1] != 0 || saveCapacity[0] != 0)) {
+			unsigned int min{ static_cast<unsigned int>(minIndex) }, max{ static_cast<unsigned int>(minIndex) };
+			POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
+			saveCapacity[2] += max - min + 1;
+			unsigned int* temp = new unsigned int[saveCapacity[2]];
+			for (unsigned int j = 0; j < saveCapacity[2] - max + min - 1; ++j) {
+				temp[j] = saveIndex[2][j];
+			}
+			for (unsigned int j = 0; j < max - min + 1; ++j) {
+				temp[j + saveCapacity[2] - max + min - 1] = j + min;
+				polyPointer->setVCZ(polyPointer->getpIndices()[j + min], 0.0f);
+			}
+			delete[] saveIndex[2];
+			saveIndex[2] = temp;
 
-				pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
+			pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
 
-				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
+			POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
 
-				saveCapacity[3] += max - min + 1;
-				unsigned int* tempLine = new unsigned int[saveCapacity[3]];
-				for (unsigned int j = 0; j < saveCapacity[3] - max + min - 1; ++j) {
-					tempLine[j] = saveIndex[3][j];
-				}
-				for (unsigned int j = 0; j < max - min + 1; ++j) {
-					tempLine[j + saveCapacity[3] - max + min - 1] = j + min;
-					// Do not change the color. 
-				}
+			saveCapacity[3] += max - min + 1;
+			unsigned int* tempLine = new unsigned int[saveCapacity[3]];
+			for (unsigned int j = 0; j < saveCapacity[3] - max + min - 1; ++j) {
+				tempLine[j] = saveIndex[3][j];
+			}
+			for (unsigned int j = 0; j < max - min + 1; ++j) {
+				tempLine[j + saveCapacity[3] - max + min - 1] = j + min;
+				// Do not change the color. 
+			}
 				
 
-				delete[] saveIndex[3];
-				saveIndex[3] = tempLine;
+			delete[] saveIndex[3];
+			saveIndex[3] = tempLine;
 
-				polyPointer->drawing();
-				found = TRUE;
-				break;
+			polyPointer->drawing();
+			found = TRUE;
+		}
+
+		else if (saveCapacity[0] != 0 || saveCapacity[1] != 0 || saveCapacity[2] != 0) {
+			// POLY
+			for (unsigned int j = 0; j < saveCapacity[2]; ++j) {
+				polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][j]], 0.9f);
 			}
-			else if (saveCapacity[0] != 0 || saveCapacity[1] != 0 || saveCapacity[2] != 0) {
-				// POLY
-				for (unsigned int j = 0; j < saveCapacity[2]; ++j) {
-					polyPointer->setVCZ(polyPointer->getpIndices()[saveIndex[2][j]], 0.9f);
-				}
 
-				delete[] saveIndex[2];
-				delete[] saveIndex[3];
-				delete[] saveIndex[5];
-				saveCapacity[2] = 0;
-				saveCapacity[3] = 0;
-				saveCapacity[5] = 0;
+			delete[] saveIndex[2];
+			delete[] saveIndex[3];
+			delete[] saveIndex[5];
+			saveCapacity[2] = 0;
+			saveCapacity[3] = 0;
+			saveCapacity[5] = 0;
 
-				// LINE
-				for (unsigned int j = 0; j < saveCapacity[1]; ++j) {
-					linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
-					linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
-				}
-
-				delete[] saveIndex[1];
-				delete[] saveIndex[4];
-				saveCapacity[1] = 0;
-				saveCapacity[4] = 0;
-				saveIndex[1] = new unsigned int[0];
-				saveIndex[4] = new unsigned int[0];
-
-				// POINT
-				for (unsigned int j = 0; j < saveCapacity[0]; ++j) {
-					pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][j], 1.0f);
-				}
-
-				saveCapacity[0] = 0;
-				delete[] saveIndex[0];
-				saveIndex[0] = new unsigned int[0];
-
-				// POLY SPECIFIC
-				unsigned int min{ i }, max{ i };
-				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 2);
-				saveCapacity[2] = max - min + 1;
-				saveIndex[2] = new unsigned int[max - min + 1];
-				for (unsigned int k = 0; k < max - min + 1; ++k) {
-					saveIndex[2][k] = k + min;
-					polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
-				}
-
-				saveIndex[5] = new unsigned int[0];
-				pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
-
-				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
-
-				saveCapacity[3] = max - min + 1;
-				saveIndex[3] = new unsigned int[max - min + 1];
-				for (unsigned int k = 0; k < max - min + 1; ++k) {
-					saveIndex[3][k] = k + min;
-					// Do not change color
-				}
-
-				polyPointer->drawing();
-				linePointer->drawing();
-				pointPointer->drawing();
-
-				found = TRUE;
-				break;
+			// LINE
+			for (unsigned int j = 0; j < saveCapacity[1]; ++j) {
+				linePointer->setVCX(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
+				linePointer->setVCY(linePointer->getpIndices()[saveIndex[1][j]], 0.0f);
 			}
+
+			delete[] saveIndex[1];
+			delete[] saveIndex[4];
+			saveCapacity[1] = 0;
+			saveCapacity[4] = 0;
+			saveIndex[1] = new unsigned int[0];
+			saveIndex[4] = new unsigned int[0];
+
+			// POINT
+			for (unsigned int j = 0; j < saveCapacity[0]; ++j) {
+				pDoc->pLayer->getPrimitive(pDoc->pLayer->POINT)->setVCZ(saveIndex[0][j], 1.0f);
+			}
+
+			saveCapacity[0] = 0;
+			delete[] saveIndex[0];
+			saveIndex[0] = new unsigned int[0];
+
+			// POLY SPECIFIC
+			unsigned int min{ static_cast<unsigned int>(minIndex) }, max{ static_cast<unsigned int>(minIndex) };
+			POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 2);
+			saveCapacity[2] = max - min + 1;
+			saveIndex[2] = new unsigned int[max - min + 1];
+			for (unsigned int k = 0; k < max - min + 1; ++k) {
+				saveIndex[2][k] = k + min;
+				polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
+			}
+
+			saveIndex[5] = new unsigned int[0];
+			pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
+
+			POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
+
+			saveCapacity[3] = max - min + 1;
+			saveIndex[3] = new unsigned int[max - min + 1];
+			for (unsigned int k = 0; k < max - min + 1; ++k) {
+				saveIndex[3][k] = k + min;
+				// Do not change color
+			}
+
+			polyPointer->drawing();
+			linePointer->drawing();
+			pointPointer->drawing();
+
+			found = TRUE;
+		}
 			
-			else if (saveCapacity[2] == 0) {
-				unsigned int min{ i }, max{ i }; // for going both direction (increasing / decreasing)
-				POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
-				saveCapacity[2] = max - min + 1;
-				unsigned int* temp = new unsigned int[max - min + 1];
-				for (unsigned int k = 0; k < max - min + 1; ++k) {
-					temp[k] = k + min;
-					polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
-				}
-				delete[] saveIndex[2];
-				saveIndex[2] = temp;
-				
-				pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
-
-				POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
-
-				saveCapacity[3] = max - min + 1;
-				unsigned int* tempLine = new unsigned int[max - min + 1];
-				for (unsigned int k = 0; k < max - min + 1; ++k) {
-					tempLine[k] = k + min;
-					// Do not change color
-				}
-				delete[] saveIndex[3];
-				saveIndex[3] = tempLine;
-
-				polyPointer->drawing();
-				found = TRUE;
-				break;
+		else if (saveCapacity[2] == 0) {
+			unsigned int min{ static_cast<unsigned int>(minIndex) }, max{ static_cast<unsigned int>(minIndex) }; // for going both direction (increasing / decreasing)
+			POLYIndexIdentifier(polyPointer->getpIndices(), min, max, polyPointer->getIndexCapacity() / 3);
+			saveCapacity[2] = max - min + 1;
+			unsigned int* temp = new unsigned int[max - min + 1];
+			for (unsigned int k = 0; k < max - min + 1; ++k) {
+				temp[k] = k + min;
+				polyPointer->setVCZ(polyPointer->getpIndices()[k + min], 0.0f);
 			}
+			delete[] saveIndex[2];
+			saveIndex[2] = temp;
+				
+			pushPOLYVBOIndex(polyPointer->getpIndices(), min, max);
+
+			POLYLineIndexIdentifier(polyPointer->getpIndices(), polyPointer->getpLineIndices(), min, max);
+
+			saveCapacity[3] = max - min + 1;
+			unsigned int* tempLine = new unsigned int[max - min + 1];
+			for (unsigned int k = 0; k < max - min + 1; ++k) {
+				tempLine[k] = k + min;
+				// Do not change color
+			}
+			delete[] saveIndex[3];
+			saveIndex[3] = tempLine;
+
+			polyPointer->drawing();
+			found = TRUE;
 		}
 	}
 
