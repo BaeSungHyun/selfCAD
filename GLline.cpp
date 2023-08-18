@@ -169,6 +169,9 @@ void GLline::pushVertex() {
 		LOOPpushVertex();
 		break;
 	}
+	case COPY: {
+		break;
+	}
 	}
 
 	// vertex

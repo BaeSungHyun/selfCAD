@@ -36,6 +36,8 @@ public:
 	float finalY;
 	float finalZ;
 
+	BOOL done{ FALSE };
+
 	afx_msg void OnBnClickedMoveErase();
 	virtual void OnCancel();
 	virtual void OnOK();

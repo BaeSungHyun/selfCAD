@@ -1000,6 +1000,13 @@ void CstructureView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		
 		// POINT exists  index : 0
 		if (saveCapacity[0] != 0) {
+			for (unsigned int i = 0; i < saveCapacity[0] - 1; ++i) {
+				if (saveIndex[0][i + 1] - saveIndex[0][i] != 1) {
+					MessageBox(_T("Select only one point or Select multiple points by order of creation."));
+					return;
+				}
+			}
+
 			pointPointer->rangeDelete(saveIndex[0][0], saveIndex[0][saveCapacity[0] - 1]);
 
 			delete[] saveIndex[0];
@@ -1011,6 +1018,13 @@ void CstructureView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 		// LINE exists  index : 1
 		if (saveCapacity[1] != 0) {
+			for (unsigned int i = 0; i < saveCapacity[4] - 1; ++i) {
+				if (saveIndex[4][i + 1] - saveIndex[4][i] != 1) {
+					MessageBox(_T("Select only one line or Select multiple lines by order of creation."));
+					return;
+				}
+			}
+
 			linePointer->rangeDelete(saveIndex[1][0], saveIndex[1][saveCapacity[1] - 1]);
 
 			delete[] saveIndex[1];
@@ -1027,6 +1041,13 @@ void CstructureView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 		// POLY exists  index : 2 (poly) , 3 (line)
 		if (saveCapacity[2] != 0) {
+			for (unsigned int i = 0; i < saveCapacity[5] - 1; ++i) {
+				if (saveIndex[5][i + 1] - saveIndex[5][i] != 1) {
+					MessageBox(_T("Select only one poly or Select multiple poly by order of creation."));
+					return;
+				}
+			}
+
 			polyPointer->rangeDelete(saveIndex[2][0], saveIndex[2][saveCapacity[2] - 1], saveIndex[3][0], saveIndex[3][saveCapacity[3] - 1]);
 
 			delete[] saveIndex[2];

@@ -140,10 +140,6 @@ void CstructureView::LINEIndexIdentifier(const unsigned int* saveIndex, unsigned
 void CstructureView::pushPOLYVBOIndex(unsigned int* polyEBO, unsigned int min, unsigned int max) {
 	unsigned int minVBO{ polyEBO[min] }, maxVBO{ polyEBO[max] };
 
-	CString str;
-	str.Format(_T("%d, %d, %d, %d"), min, max, minVBO, maxVBO);
-	MessageBox(str);
-
 	for (int i = min + 1; i < min + 3; ++i) {
 		if (minVBO > polyEBO[i]) {
 			minVBO = polyEBO[i];

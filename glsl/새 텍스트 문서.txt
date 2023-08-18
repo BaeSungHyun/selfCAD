@@ -1,3 +1,44 @@
-#version 330 core
-layout (location = 0) in vec3 aPos;
+			unsigned int start1{ 0 }, start2{ 0 };
+			while (!done) {
+				for (unsigned int i = start1; i < pView->saveCapacity[1]; ++i) {
+					unsigned int* temp = new unsigned int[linePointer->getIndexCapacity() + 1];
+					for (int i = 0; i < linePointer->getIndexCapacity(); ++i) {
+						temp[i] = linePointer->getpIndices()[i];
+					}
+					temp[linePointer->getIndexCapacity()] // inserting position
+						= linePointer->getCapacity() - linePointer->getpIndices()[pView->saveIndex[1][start1]]
+						+ linePointer->getpIndices()[pView->saveIndex[1][i]]; // selected position
 
+					delete[] linePointer->getpIndices();
+					linePointer->getpIndices() = temp;
+
+					linePointer->addIndexCapacity(1);
+
+					if (i < pView->saveCapacity[1] - 1 && pView->saveIndex[1][i + 1] - pView->saveIndex[1][i] != 1) {
+						start1 = i + 1;
+						break;
+					}
+					else if (i == pView->saveCapacity[1] - 1) {
+						start1 = pView->saveCapacity[1];
+					}
+				}
+				for (unsigned int i = start2; i < pView->saveCapacity[4]; ++i) {
+					linePointer->setVertex(linePointer->getX(pView->saveIndex[4][i]) + directionX,
+						linePointer->getY(pView->saveIndex[4][i]) + directionY, linePointer->getZ(pView->saveIndex[4][i]) + directionZ, 0.0f, 0.0f, 0.0f);
+					linePointer->setMode(3);
+					linePointer->pushVertex();
+
+					if (i < pView->saveCapacity[4] - 1 && pView->saveIndex[4][i + 1] - pView->saveIndex[4][i] != 1) {
+						start2 = i + 1;
+						break;
+					}
+					else if (i == pView->saveCapacity[4] - 1) {
+						start2 = pView->saveCapacity[4];
+					}
+				}
+
+				if (start1 == pView->saveCapacity[1] && start2 == pView->saveCapacity[4]) {
+					done = TRUE;
+				}
+				linePointer->drawing();
+			}

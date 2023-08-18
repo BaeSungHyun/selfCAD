@@ -27,7 +27,7 @@ public:
 	void STRIPpushVertex();
 	void LOOPpushVertex();
 
-	enum Mode { LINES, STRIP, LOOP };
+	enum Mode { LINES, STRIP, LOOP, COPY };
 
 	void loopComplete();
 	void setMode(int);
