@@ -258,7 +258,7 @@ BOOL CstructureView::SetupProjection() {
 
 BOOL CstructureView::SetupView() {
 	view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, -10.0f, -500.0f));
+	view = glm::translate(view, glm::vec3(0.0f, -100.0f, -500.0f));
 	return TRUE;
 }
 
@@ -286,11 +286,11 @@ BOOL CstructureView::SetupCamera() {
 void CstructureView::DimAxis() {
 	float vertices[] = {   // colors
 		0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		100.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		200.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 100.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 200.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 100.0f, 1.0f, 0.0f, 0.0f
+		0.0f, 0.0f, 200.0f, 1.0f, 0.0f, 0.0f
 	};
 
 	// need this in advance to update uniform variable in GLSL
@@ -438,7 +438,7 @@ void CstructureView::OnMouseMove(UINT nFlags, CPoint point)
 		lastX = xPos;
 		lastY = yPos;
 
-		const float cameraSpeed = 0.05f;
+		const float cameraSpeed = 0.1f;
 		xVec *= cameraSpeed;
 		yVec *= cameraSpeed;
 
