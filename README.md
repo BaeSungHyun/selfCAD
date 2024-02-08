@@ -12,3 +12,8 @@ To use this application, download 'selfCAD.zip'. Unzip it and use! (Watch the vi
 
 이 앱을 사용하기 위해서는, 'selfCAD.zip'을 다운도르 받고 압축을 풀고 설명을 위해 영상을 보고 사용하세요.
 *** 어떠한 악성코드는 없습니다. 그럴 실력도 안됩니다.
+
+
+# GIF
+
+![selfVideo_gif](https://github.com/BaeSungHyun/selfCAD/assets/117246534/11b4886b-dbd7-4767-b62f-a9e9903208d8)
